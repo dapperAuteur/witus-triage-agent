@@ -12,9 +12,10 @@ production code: **graph state**, **tool calls**, and **human-in-the-loop interr
 classify → enrich → propose → human approval → execute | log rejection
 ```
 
-> **Build status — Day 1 of 7.** The Drizzle schema, the first migration, and the
-> `classify` node are wired. The remaining nodes, the approval interrupt, the operator
-> dashboard, and the LangSmith integration land on later days. See
+> **Build status — Day 6 of 7.** The full graph (classify → enrich → propose →
+> human-approval interrupt → execute / log-rejection), the API surface, the operator
+> dashboard, LangSmith wiring, and the 4-lesson curriculum are all in. Day 7 is polish
+> and the accuracy check. See
 > [`plans/PRD-1-witus-triage-agent.md`](plans/PRD-1-witus-triage-agent.md) for the full
 > spec and the phased build plan.
 
@@ -132,17 +133,33 @@ The agent is a LangGraph state machine. Each node is a **pure function of state*
 it receives `TriageState`, returns a partial update, and LangGraph merges it. Side
 effects happen only in `execute` and `log_rejection`.
 
-The human-in-the-loop gate (Day 4) uses a real LangGraph `interrupt()`: the graph runs
+The human-in-the-loop gate uses a real LangGraph `interrupt()`: the graph runs
 `classify → enrich → propose`, pauses, and a Postgres checkpointer persists its state.
 A later HTTP request resumes the exact same graph thread with the operator's decision.
 
 See [`docs/STYLEGUIDE.md`](docs/STYLEGUIDE.md) for code conventions and the resolved
-WitUS design tokens. The `docs/lessons/` curriculum (Day 6) teaches these patterns
-step by step.
+WitUS design tokens.
+
+---
+
+## Curriculum
+
+A 4-lesson, code-along walkthrough of the LangGraph patterns in this repo — every
+snippet links to the file it came from:
+
+1. [From a chain to a graph](docs/lessons/01-chain-to-graph.md) — when a linear chain
+   stops being enough.
+2. [Designing agent state](docs/lessons/02-agent-state.md) — the state object as a
+   contract; pure-function nodes.
+3. [Tools and the human-in-the-loop interrupt](docs/lessons/03-tools-and-approval.md) —
+   Zod-schema tools; `interrupt()` + the checkpointer; resuming with `Command`.
+4. [Observability: reading a trace](docs/lessons/04-observability.md) — fail-soft
+   LangSmith; debugging from a trace.
+
+Index: [`docs/lessons/`](docs/lessons/README.md).
 
 ---
 
 ## License & ecosystem
 
 Part of the WitUS ecosystem — © B4C LLC, an AwesomeWebStore.com brand.
-# witus-triage-agent
