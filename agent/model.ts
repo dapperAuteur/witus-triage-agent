@@ -63,6 +63,14 @@ export function activeModelId(): string {
   return resolveProvider() === "anthropic" ? ANTHROPIC_MODEL : GOOGLE_MODEL;
 }
 
+/**
+ * Bounded retries. The default (6) means a rate-limited call — common on the
+ * Gemini free tier used for testing — can back off for over a minute before
+ * failing. Capping at 2 keeps worst-case latency sane; nodes are fail-soft, so
+ * genuine exhaustion degrades gracefully rather than hanging the graph.
+ */
+const MAX_RETRIES = 2;
+
 export function getChatModel(opts: ChatModelOptions = {}): BaseChatModel {
   const env = getEnv();
   const temperature = opts.temperature ?? 0;
@@ -73,6 +81,7 @@ export function getChatModel(opts: ChatModelOptions = {}): BaseChatModel {
       model: ANTHROPIC_MODEL,
       temperature,
       maxTokens,
+      maxRetries: MAX_RETRIES,
       apiKey: env.ANTHROPIC_API_KEY,
     });
   }
@@ -81,6 +90,7 @@ export function getChatModel(opts: ChatModelOptions = {}): BaseChatModel {
     model: GOOGLE_MODEL,
     temperature,
     maxOutputTokens: maxTokens,
+    maxRetries: MAX_RETRIES,
     apiKey: env.GEMINI_API_KEY,
   });
 }

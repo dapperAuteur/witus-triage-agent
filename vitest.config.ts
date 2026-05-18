@@ -5,8 +5,9 @@ export default defineConfig({
     environment: "node",
     include: ["__tests__/**/*.test.ts", "agent/**/*.test.ts"],
     setupFiles: ["./__tests__/setup.ts"],
-    // Live LLM calls in the classify test need headroom.
-    testTimeout: 30_000,
+    // Live LLM tests can make two sequential calls; on a rate-limited free
+    // tier each call also retries with backoff. Give them generous headroom.
+    testTimeout: 60_000,
   },
   resolve: {
     alias: {
