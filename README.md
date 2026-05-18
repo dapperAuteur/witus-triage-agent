@@ -26,7 +26,7 @@ classify → enrich → propose → human approval → execute | log rejection
 |---|---|
 | Runtime | Node.js 20+, Next.js 16 (app router), TypeScript strict |
 | Agent | `@langchain/langgraph` 1.x |
-| LLM | `@langchain/anthropic` — Claude Sonnet 4.6 (`claude-sonnet-4-6`) |
+| LLM | Gemini 2.5 Flash for testing · Claude Sonnet 4.6 for production (dual-provider) |
 | Database | Postgres (local) / Neon (deployed) via Drizzle ORM on `node-postgres` |
 | Observability | LangSmith (`langsmith`) — optional, fail-soft |
 | Auth | NextAuth v4 (operator dashboard, Day 4+) |
@@ -52,7 +52,7 @@ cp .env.example .env.local
 #    Fill in at minimum:
 #      STORAGE_DATABASE_URL=postgresql://localhost:5432/witus_triage_agent
 #      STORAGE_DATABASE_URL_UNPOOLED=postgresql://localhost:5432/witus_triage_agent
-#      ANTHROPIC_API_KEY=sk-ant-...
+#      GEMINI_API_KEY=...        (testing — or ANTHROPIC_API_KEY for production)
 #    Secret generation + every variable is documented in
 #    plans/user-tasks/01-provision-env-and-secrets.md
 
@@ -90,8 +90,8 @@ To exercise the `classify` node, run the test suite with an Anthropic key set (b
 npm test
 ```
 
-The `classify` tests make live Anthropic API calls, so they are **skipped** unless
-`ANTHROPIC_API_KEY` is set — CI without a key stays green. With a key set, they run the
+The `classify` tests make a live LLM call, so they are **skipped** unless `GEMINI_API_KEY`
+or `ANTHROPIC_API_KEY` is set — CI without a key stays green. With a key set, they run the
 node against 5 labeled fixtures and assert each produces a valid classification.
 
 ---

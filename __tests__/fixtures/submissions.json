@@ -1,0 +1,158 @@
+{
+  "_comment": "Hand-labeled WitUS Inbox submissions. `expectedCategory` is the ground-truth label used by the classify test and the Day-7 accuracy check (PRD acceptance #5). Day 1 ships a starter set; Day 7 expands to 25 real submissions. Each row mirrors the witus-inbox `submission` shape.",
+  "submissions": [
+    {
+      "id": "fixture-01",
+      "source": "flashlearnai",
+      "formType": "contact-form",
+      "submitterEmail": "rosa.lim@example.com",
+      "submitterName": "Rosa Lim",
+      "priority": "normal",
+      "payload": {
+        "subject": "How do I reset my review streak?",
+        "message": "Hi! I missed a few days of study and my streak reset to zero. Is there a way to set the streak back, or a grace period setting I can turn on? I'm not upset, just want to know how it works."
+      },
+      "expectedCategory": "support_question"
+    },
+    {
+      "id": "fixture-02",
+      "source": "fly-witus",
+      "formType": "contact-form",
+      "submitterEmail": "deon.carter@example.com",
+      "submitterName": "Deon Carter",
+      "priority": "high",
+      "payload": {
+        "subject": "Preflight checklist won't save",
+        "message": "Every time I complete the preflight checklist and hit Save, the page spins for about 20 seconds and then shows 'Something went wrong'. The flight record is never created. I've tried Chrome and Safari on two devices. This started this morning."
+      },
+      "expectedCategory": "bug_report"
+    },
+    {
+      "id": "fixture-03",
+      "source": "centenarianos",
+      "formType": "contact-form",
+      "submitterEmail": "amara.osei@example.com",
+      "submitterName": "Amara Osei",
+      "priority": "normal",
+      "payload": {
+        "subject": "Idea: shared goals with a partner",
+        "message": "Love the goals module. It would be amazing if my spouse and I could share a household goal and both check it off. Any chance that's on the roadmap?"
+      },
+      "expectedCategory": "feature_request"
+    },
+    {
+      "id": "fixture-04",
+      "source": "work-witus",
+      "formType": "contact-form",
+      "submitterEmail": "trent.boyd@example.com",
+      "submitterName": "Trent Boyd",
+      "priority": "high",
+      "payload": {
+        "subject": "Charged twice for the annual plan",
+        "message": "I was billed $103.29 on the 3rd and again on the 11th for the same annual subscription. My bank shows both as posted, not pending. Please refund the duplicate and let me know it's sorted."
+      },
+      "expectedCategory": "billing_issue"
+    },
+    {
+      "id": "fixture-05",
+      "source": "witus-online",
+      "formType": "contact-form",
+      "submitterEmail": "noreply@bulk-mailer.example",
+      "submitterName": "WINNER NOTICE",
+      "priority": "normal",
+      "payload": {
+        "message": "CONGRATULATIONS!!! Your email was selected to receive $5,000,000 USD. Click http://claim-prize-now.example to verify your bank details and claim before 24 hours. Act fast!!!"
+      },
+      "expectedCategory": "spam"
+    },
+    {
+      "id": "fixture-06",
+      "source": "wanderlearn",
+      "formType": "contact-form",
+      "submitterEmail": "angry.user@example.com",
+      "submitterName": "anonymous",
+      "priority": "normal",
+      "payload": {
+        "message": "Your support team is a bunch of useless idiots and I hope your whole company burns down. I'm going to make your life hell until you reply."
+      },
+      "expectedCategory": "abuse"
+    },
+    {
+      "id": "fixture-07",
+      "source": "flashlearnai",
+      "formType": "contact-form",
+      "submitterEmail": "priya.nair@example.com",
+      "submitterName": "Priya Nair",
+      "priority": "normal",
+      "payload": {
+        "subject": "Audio not playing on vocab cards",
+        "message": "On the Spanish deck the pronunciation audio button is greyed out for about half the cards. The other half work fine. Is this a known issue or something on my end?"
+      },
+      "expectedCategory": "bug_report"
+    },
+    {
+      "id": "fixture-08",
+      "source": "centenarianos",
+      "formType": "academy-feedback",
+      "submitterEmail": "lewis.grant@example.com",
+      "submitterName": "Lewis Grant",
+      "priority": "normal",
+      "payload": {
+        "message": "Just wanted to say the Academy longevity course was excellent. No question — keep up the great work."
+      },
+      "expectedCategory": "other"
+    },
+    {
+      "id": "fixture-09",
+      "source": "work-witus",
+      "formType": "contact-form",
+      "submitterEmail": "maria.delgado@example.com",
+      "submitterName": "Maria Delgado",
+      "priority": "normal",
+      "payload": {
+        "subject": "Can't find where to add a new venue",
+        "message": "I've been clicking around the dashboard for ten minutes. Where exactly do I add a new venue to a job? A pointer would be great, thanks."
+      },
+      "expectedCategory": "support_question"
+    },
+    {
+      "id": "fixture-10",
+      "source": "fly-witus",
+      "formType": "contact-form",
+      "submitterEmail": "owen.fisher@example.com",
+      "submitterName": "Owen Fisher",
+      "priority": "normal",
+      "payload": {
+        "subject": "Export flight logs to CSV",
+        "message": "Would you consider adding a CSV export for flight records? I need to hand my logbook to an insurer once a quarter and copy-paste is painful."
+      },
+      "expectedCategory": "feature_request"
+    },
+    {
+      "id": "fixture-11",
+      "source": "witus-online",
+      "formType": "bvc-pilot-signup",
+      "submitterEmail": "coach.reed@example.com",
+      "submitterName": "Coach Reed",
+      "priority": "high",
+      "payload": {
+        "subject": "Promo code rejected at checkout",
+        "message": "I have an educator promo code from the BVC pilot packet but checkout says 'code not valid'. I've copied it exactly. Can you check whether my code is active? I'd like to start the annual plan today."
+      },
+      "expectedCategory": "billing_issue"
+    },
+    {
+      "id": "fixture-12",
+      "source": "wanderlearn",
+      "formType": "contact-form",
+      "submitterEmail": "sana.qureshi@example.com",
+      "submitterName": "Sana Qureshi",
+      "priority": "normal",
+      "payload": {
+        "subject": "360 tour stuck on loading",
+        "message": "The Kyoto 360 lesson never finishes loading — just a spinner. Other lessons open fine. Tried reloading and a different browser. Could be a broken asset on that specific tour."
+      },
+      "expectedCategory": "bug_report"
+    }
+  ]
+}
