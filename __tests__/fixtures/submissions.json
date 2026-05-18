@@ -1,5 +1,5 @@
 {
-  "_comment": "Hand-labeled WitUS Inbox submissions. `expectedCategory` is the ground-truth label used by the classify test and the Day-7 accuracy check (PRD acceptance #5). Day 1 ships a starter set; Day 7 expands to 25 real submissions. Each row mirrors the witus-inbox `submission` shape.",
+  "_comment": "25 hand-labeled WitUS Inbox submissions. `expectedCategory` is the ground-truth label used by the classify test (first 5) and the Day-7 accuracy eval (all 25, npm run eval). PRD acceptance #5: classification accuracy >= 80%. Each row mirrors the witus-inbox `submission` shape.",
   "submissions": [
     {
       "id": "fixture-01",
@@ -153,6 +153,171 @@
         "message": "The Kyoto 360 lesson never finishes loading — just a spinner. Other lessons open fine. Tried reloading and a different browser. Could be a broken asset on that specific tour."
       },
       "expectedCategory": "bug_report"
+    },
+    {
+      "id": "fixture-13",
+      "source": "flashlearnai",
+      "formType": "contact-form",
+      "submitterEmail": "jamal.wright@example.com",
+      "submitterName": "Jamal Wright",
+      "priority": "normal",
+      "payload": {
+        "subject": "How does the spaced repetition interval work?",
+        "message": "I'm curious how the app decides when to show a card again. Is it a fixed schedule or does it adapt to how well I answered? Just want to understand it better."
+      },
+      "expectedCategory": "support_question"
+    },
+    {
+      "id": "fixture-14",
+      "source": "centenarianos",
+      "formType": "contact-form",
+      "submitterEmail": "helen.park@example.com",
+      "submitterName": "Helen Park",
+      "priority": "normal",
+      "payload": {
+        "subject": "Where do I change my timezone?",
+        "message": "My daily check-in reminders arrive three hours early. I think my timezone is wrong but I can't find the setting. Which menu is it under?"
+      },
+      "expectedCategory": "support_question"
+    },
+    {
+      "id": "fixture-15",
+      "source": "work-witus",
+      "formType": "contact-form",
+      "submitterEmail": "victor.hale@example.com",
+      "submitterName": "Victor Hale",
+      "priority": "normal",
+      "payload": {
+        "message": "Quick question — can two contractors share one job, or is each job tied to a single account? Trying to figure out if WitUS fits how my crew works before I commit."
+      },
+      "expectedCategory": "support_question"
+    },
+    {
+      "id": "fixture-16",
+      "source": "fly-witus",
+      "formType": "contact-form",
+      "submitterEmail": "nina.alvarez@example.com",
+      "submitterName": "Nina Alvarez",
+      "priority": "normal",
+      "payload": {
+        "subject": "Is the offline mode documented anywhere?",
+        "message": "I fly in areas with no signal. Does the app keep working offline, and is there a guide on what syncs when I reconnect? Couldn't find docs on it."
+      },
+      "expectedCategory": "support_question"
+    },
+    {
+      "id": "fixture-17",
+      "source": "flashlearnai",
+      "formType": "contact-form",
+      "submitterEmail": "marcus.lee@example.com",
+      "submitterName": "Marcus Lee",
+      "priority": "high",
+      "payload": {
+        "subject": "Progress lost after today's update",
+        "message": "I opened the app this morning and all 14 of my decks show 0% progress. The cards are still there but every review I've done for months is gone. This has to be a data bug — please tell me it's recoverable."
+      },
+      "expectedCategory": "bug_report"
+    },
+    {
+      "id": "fixture-18",
+      "source": "tour-witus",
+      "formType": "contact-form",
+      "submitterEmail": "gita.menon@example.com",
+      "submitterName": "Gita Menon",
+      "priority": "normal",
+      "payload": {
+        "subject": "Show dates display in the wrong order",
+        "message": "On the tour calendar, shows sort newest-first even though the sort control says oldest-first. Toggling it does nothing. Minor but confusing when I'm advancing the run of show."
+      },
+      "expectedCategory": "bug_report"
+    },
+    {
+      "id": "fixture-19",
+      "source": "centenarianos",
+      "formType": "contact-form",
+      "submitterEmail": "errol.fox@example.com",
+      "submitterName": "Errol Fox",
+      "priority": "normal",
+      "payload": {
+        "message": "The finance dashboard total doesn't match the sum of my accounts. It's off by exactly one account's balance — looks like a hidden account is being excluded from the total. Can someone look?"
+      },
+      "expectedCategory": "bug_report"
+    },
+    {
+      "id": "fixture-20",
+      "source": "wanderlearn",
+      "formType": "contact-form",
+      "submitterEmail": "tessa.brooks@example.com",
+      "submitterName": "Tessa Brooks",
+      "priority": "normal",
+      "payload": {
+        "subject": "Captions for the 360 lessons",
+        "message": "I'd love to use Wanderlearn with my deaf students. Any plans to add captions or transcripts to the narrated 360 tours? That would make it usable for my whole class."
+      },
+      "expectedCategory": "feature_request"
+    },
+    {
+      "id": "fixture-21",
+      "source": "work-witus",
+      "formType": "contact-form",
+      "submitterEmail": "darnell.ray@example.com",
+      "submitterName": "Darnell Ray",
+      "priority": "normal",
+      "payload": {
+        "subject": "Recurring invoices",
+        "message": "Most of my clients are on monthly retainers. Right now I recreate the invoice by hand each month. A recurring-invoice option would save me an hour a week — is that something you'd build?"
+      },
+      "expectedCategory": "feature_request"
+    },
+    {
+      "id": "fixture-22",
+      "source": "flashlearnai",
+      "formType": "contact-form",
+      "submitterEmail": "owena.diaz@example.com",
+      "submitterName": "Owena Diaz",
+      "priority": "high",
+      "payload": {
+        "subject": "Cancelled but still being charged",
+        "message": "I cancelled my subscription six weeks ago and have a confirmation email. My card was charged again yesterday for the monthly plan. Please stop the charges and refund the one from yesterday."
+      },
+      "expectedCategory": "billing_issue"
+    },
+    {
+      "id": "fixture-23",
+      "source": "centenarianos",
+      "formType": "contact-form",
+      "submitterEmail": "felix.gunn@example.com",
+      "submitterName": "Felix Gunn",
+      "priority": "normal",
+      "payload": {
+        "message": "I paid for the lifetime tier via CashApp three days ago but my account still shows the free plan. The page said CashApp activation can take 24 hours — it's been longer. Can you activate it?"
+      },
+      "expectedCategory": "billing_issue"
+    },
+    {
+      "id": "fixture-24",
+      "source": "witus-online",
+      "formType": "contact-form",
+      "submitterEmail": "promo@seo-backlinks-cheap.example",
+      "submitterName": "Digital Growth Team",
+      "priority": "normal",
+      "payload": {
+        "subject": "Boost your Google ranking — guaranteed page 1",
+        "message": "Hello, we are an SEO agency. We can get witus.online to page 1 of Google with 5,000 high-quality backlinks for only $99/month. Reply 'YES' to start. Limited slots this week!"
+      },
+      "expectedCategory": "spam"
+    },
+    {
+      "id": "fixture-25",
+      "source": "fly-witus",
+      "formType": "contact-form",
+      "submitterEmail": "rage.account@example.com",
+      "submitterName": "anonymous",
+      "priority": "high",
+      "payload": {
+        "message": "Whoever coded this garbage should be fired and never work again. You people are scammers and morons. I will be posting your home address online so everyone knows what kind of trash you are."
+      },
+      "expectedCategory": "abuse"
     }
   ]
 }
