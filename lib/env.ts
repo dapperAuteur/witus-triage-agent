@@ -35,6 +35,10 @@ const EnvSchema = z.object({
   NEXTAUTH_SECRET: z.string().min(16).optional(),
   /** The single email allowed to sign in to the operator dashboard. */
   ADMIN_EMAIL: z.string().email().optional(),
+  /** SMTP connection string for NextAuth's magic-link EmailProvider. */
+  EMAIL_SERVER: z.string().min(1).optional(),
+  /** From-address for magic-link emails, e.g. "WitUS Triage <triage@…>". */
+  EMAIL_FROM: z.string().min(1).optional(),
 
   /** Shared HMAC secret for the inbox -> /api/triage/start webhook. */
   TRIAGE_INGEST_SECRET: z.string().min(16).optional(),

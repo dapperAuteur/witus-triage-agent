@@ -125,6 +125,16 @@ export const ApprovalSchema = z.object({
 });
 export type Approval = z.infer<typeof ApprovalSchema>;
 
+/**
+ * The operator's decision as supplied to resume the graph — an `Approval`
+ * without `decidedAt` (the `human_approval` node stamps that on resume). This
+ * is the value carried by `new Command({ resume: ... })`.
+ */
+export const ApprovalDecisionInputSchema = ApprovalSchema.omit({
+  decidedAt: true,
+});
+export type ApprovalDecisionInput = z.infer<typeof ApprovalDecisionInputSchema>;
+
 /* ------------------------------------------------------------------ */
 /* Execution — output of the `execute` / `log_rejection` nodes.        */
 /* ------------------------------------------------------------------ */
