@@ -61,16 +61,34 @@ export type Classification = z.infer<typeof ClassificationSchema>;
 /* Enrichment — output of the `enrich` node (deterministic, tools).    */
 /* ------------------------------------------------------------------ */
 
+/** One prior submission from the same contact — `searchPastSubmissions` output. */
+export const PastSubmissionSummarySchema = z.object({
+  id: z.string(),
+  summary: z.string(),
+  /** ISO timestamp of when the prior submission was received. */
+  date: z.string(),
+});
+export type PastSubmissionSummary = z.infer<typeof PastSubmissionSummarySchema>;
+
+/** Traffic-light health of a product. */
+export const ProductHealthSchema = z.enum(["green", "yellow", "red"]);
+export type ProductHealth = z.infer<typeof ProductHealthSchema>;
+
+/** Full `getProductStatus` tool output — the health plus a human-readable note. */
+export const ProductStatusSchema = z.object({
+  status: ProductHealthSchema,
+  note: z.string(),
+});
+export type ProductStatus = z.infer<typeof ProductStatusSchema>;
+
+/** How long the contact has been around, inferred from past-submission count. */
+export const CustomerTenureSchema = z.enum(["new", "returning", "longtime"]);
+export type CustomerTenure = z.infer<typeof CustomerTenureSchema>;
+
 export const EnrichmentSchema = z.object({
-  pastSubmissions: z.array(
-    z.object({
-      id: z.string(),
-      summary: z.string(),
-      date: z.string(),
-    }),
-  ),
-  productStatus: z.enum(["green", "yellow", "red"]),
-  customerTenure: z.enum(["new", "returning", "longtime"]),
+  pastSubmissions: z.array(PastSubmissionSummarySchema),
+  productStatus: ProductHealthSchema,
+  customerTenure: CustomerTenureSchema,
 });
 export type Enrichment = z.infer<typeof EnrichmentSchema>;
 
