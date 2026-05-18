@@ -2,12 +2,14 @@ import type { Metadata, Viewport } from "next";
 // Self-hosted Geist (offline-first — STYLEGUIDE §2: no runtime font fetch).
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "WitUS Triage Agent",
   description:
     "A LangGraph agent that classifies WitUS Inbox submissions, proposes an action, and routes through a human-in-the-loop approval gate.",
+  manifest: "/manifest.webmanifest",
   // WitUS ecosystem brand package — variant 04-orbit-type (the WitUS Inbox pairing).
   icons: {
     icon: [
@@ -38,6 +40,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {children}
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
