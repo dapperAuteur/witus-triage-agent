@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 /**
  * Day-1 landing page. Internal-tool styling — WitUS Inbox identity
@@ -57,22 +58,18 @@ export default function Home() {
           </ol>
         </section>
 
-        <section
-          aria-label="Build status"
-          className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm dark:border-amber-500/30 dark:bg-amber-500/10"
-        >
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
-            Day 1 — checkpoint
-          </h2>
-          <p className="mt-2 leading-6 text-slate-700 dark:text-slate-300">
-            Drizzle schema, first migration, and the{" "}
-            <code className="font-mono">classify</code> node are wired. The
-            operator dashboard, approval gate, and remaining nodes land on
-            later days. See{" "}
-            <code className="font-mono">README.md</code> to run the graph
-            locally.
+        <div className="mt-8">
+          <Link
+            href="/triage"
+            className="inline-flex min-h-11 items-center justify-center rounded-md bg-violet-600 px-5 text-sm font-medium text-white transition-colors hover:bg-violet-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+          >
+            Open the triage queue →
+          </Link>
+          <p className="mt-2 text-xs text-slate-500">
+            Operator sign-in required. See{" "}
+            <code className="font-mono">README.md</code> to run locally.
           </p>
-        </section>
+        </div>
       </div>
     </main>
   );

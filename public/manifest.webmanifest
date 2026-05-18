@@ -1,0 +1,15 @@
+{
+  "name": "WitUS Triage Agent",
+  "short_name": "WitUS Triage",
+  "description": "Classify, propose, and approve triage actions for WitUS Inbox submissions.",
+  "start_url": "/triage",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    { "src": "/brand/witus/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/brand/witus/favicon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/witus/favicon-32.png", "sizes": "32x32", "type": "image/png" }
+  ]
+}
