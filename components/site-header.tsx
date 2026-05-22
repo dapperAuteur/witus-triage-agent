@@ -33,6 +33,9 @@ export function SiteHeader() {
           <Link href="/triage/history" className={navLink}>
             History
           </Link>
+          <Link href="/triage/waitlist" className={navLink}>
+            Waitlist
+          </Link>
           <Link href="/admin" className={navLink}>
             Admin
           </Link>
