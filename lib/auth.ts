@@ -35,6 +35,10 @@ export const authOptions: NextAuthOptions = {
   ],
   session: { strategy: "jwt" },
   secret: env.NEXTAUTH_SECRET,
+  // Custom sign-in page — it pre-checks the email and turns a non-admin away
+  // into the waitlist flow (app/signin). The signIn callback below stays as a
+  // server-side backstop.
+  pages: { signIn: "/signin" },
   callbacks: {
     signIn({ user }) {
       const email = user?.email?.toLowerCase();
