@@ -23,7 +23,7 @@
 import { describe, it, expect } from "vitest";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { classify } from "@/agent/nodes/classify";
+import { classify, CLASSIFY_FAILSOFT_PREFIX } from "@/agent/nodes/classify";
 import { activeModelId } from "@/agent/model";
 import { TRIAGE_CATEGORIES, type RawSubmission } from "@/agent/schemas";
 import type { TriageState } from "@/agent/state";
@@ -41,13 +41,6 @@ interface Fixture {
 }
 
 const fixtures = (fixturesData as { submissions: Fixture[] }).submissions;
-
-/**
- * The exact prefix `classify`'s catch block writes to `rationale` when its
- * LLM call fails (agent/nodes/classify.ts). A confidence-0 result carrying
- * this prefix is an infrastructure failure, not a model judgement.
- */
-const FAILSOFT_PREFIX = 'Classification failed; defaulted to "other".';
 
 function toRawSubmission(f: Fixture): RawSubmission {
   const body = [f.payload.subject, f.payload.message]
@@ -110,8 +103,8 @@ describe.skipIf(!enabled)("classification accuracy eval", () => {
 
         // Honest-failure guard: a confidence-0 result carrying the fail-soft
         // prefix is an infrastructure error, not a measurement. Abort loudly.
-        if (confidence === 0 && rationale.startsWith(FAILSOFT_PREFIX)) {
-          const error = rationale.slice(FAILSOFT_PREFIX.length).trim();
+        if (confidence === 0 && rationale.startsWith(CLASSIFY_FAILSOFT_PREFIX)) {
+          const error = rationale.slice(CLASSIFY_FAILSOFT_PREFIX.length).trim();
           writeAbortedReport(
             fixture.id,
             error,
