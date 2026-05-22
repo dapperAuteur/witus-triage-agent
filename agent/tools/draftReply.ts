@@ -10,7 +10,7 @@
  */
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { getChatModel } from "../model";
+import { buildChatModel } from "../model";
 import { TRIAGE_CATEGORIES } from "../schemas";
 
 export const DraftReplyInputSchema = z.object({
@@ -86,10 +86,11 @@ export async function runDraftReply({
   ].join("\n");
 
   try {
-    const model = getChatModel({ temperature: 0.3 }).withStructuredOutput(
-      DraftReplyOutputSchema,
-      { name: "draft_reply" },
-    );
+    const model = (
+      await buildChatModel({ node: "draft_reply", temperature: 0.3 })
+    ).withStructuredOutput(DraftReplyOutputSchema, {
+      name: "draft_reply",
+    });
     return await model.invoke([
       ["system", SYSTEM_PROMPT],
       ["human", userMessage],

@@ -93,6 +93,7 @@ describe.skipIf(!enabled)("classification accuracy eval", () => {
     "classifies the 25-fixture set with >= 80% accuracy",
     async () => {
       const results: Result[] = [];
+      const modelId = await activeModelId();
       // 15s default: gemini-2.5-flash free tier is 5 req/min, so >= 12s apart.
       const delayMs = Number(process.env.EVAL_DELAY_MS ?? "15000");
 
@@ -111,7 +112,13 @@ describe.skipIf(!enabled)("classification accuracy eval", () => {
         // prefix is an infrastructure error, not a measurement. Abort loudly.
         if (confidence === 0 && rationale.startsWith(FAILSOFT_PREFIX)) {
           const error = rationale.slice(FAILSOFT_PREFIX.length).trim();
-          writeAbortedReport(fixture.id, error, results.length, fixtures.length);
+          writeAbortedReport(
+            fixture.id,
+            error,
+            results.length,
+            fixtures.length,
+            modelId,
+          );
           throw new Error(
             `Eval aborted: infrastructure failure on ${fixture.id} — ${error} — ` +
               `${results.length}/${fixtures.length} completed. This is NOT a ` +
@@ -133,7 +140,7 @@ describe.skipIf(!enabled)("classification accuracy eval", () => {
       const correctCount = results.filter((r) => r.correct).length;
       const accuracy = correctCount / results.length;
 
-      writeEvalReport(results, accuracy);
+      writeEvalReport(results, accuracy, modelId);
 
       console.log(
         `[eval] accuracy ${(accuracy * 100).toFixed(1)}% ` +
@@ -153,7 +160,11 @@ describe.skipIf(enabled)("classification accuracy eval (skipped)", () => {
 });
 
 /** Write EVAL.md for a completed run — the most recent accuracy report. */
-function writeEvalReport(results: Result[], accuracy: number): void {
+function writeEvalReport(
+  results: Result[],
+  accuracy: number,
+  modelId: string,
+): void {
   const correctCount = results.filter((r) => r.correct).length;
 
   const perCategory = new Map<string, { total: number; correct: number }>();
@@ -171,7 +182,7 @@ function writeEvalReport(results: Result[], accuracy: number): void {
     "",
     `- **Status:** measured`,
     `- **Date:** ${new Date().toISOString()}`,
-    `- **Model:** ${activeModelId()}`,
+    `- **Model:** ${modelId}`,
     `- **Overall accuracy:** ${(accuracy * 100).toFixed(1)}% (${correctCount}/${results.length})`,
     `- **PRD bar:** ≥ 80% — ${accuracy >= 0.8 ? "PASS" : "FAIL"}`,
     "",
@@ -207,6 +218,7 @@ function writeAbortedReport(
   error: string,
   completed: number,
   total: number,
+  modelId: string,
 ): void {
   const lines: string[] = [
     "# Classification accuracy — EVAL.md",
@@ -215,7 +227,7 @@ function writeAbortedReport(
     "",
     "- **Status:** aborted — infrastructure failure",
     `- **Date:** ${new Date().toISOString()}`,
-    `- **Model:** ${activeModelId()}`,
+    `- **Model:** ${modelId}`,
     `- **Failed at:** ${fixtureId} (after ${completed}/${total} fixtures)`,
     `- **Error:** ${error}`,
     "",

@@ -22,6 +22,8 @@ import {
   uuid,
   jsonb,
   integer,
+  real,
+  boolean,
   primaryKey,
 } from "drizzle-orm/pg-core";
 import type { AdapterAccount } from "next-auth/adapters";
@@ -196,6 +198,28 @@ export const verificationTokens = pgTable(
   (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
 );
 
+/* ------------------------------------------------------------------ */
+/* app_settings — one singleton row holding the runtime LLM config the  */
+/* /admin dashboard edits: provider, per-node model ids, generation     */
+/* defaults, tracing toggle. Empty/partial `models` slots fall back to  */
+/* the built-in DEFAULT_MODELS map (agent/model.ts).                    */
+/* ------------------------------------------------------------------ */
+
+export const appSettings = pgTable("app_settings", {
+  id: text("id").primaryKey().default("singleton"),
+  // 'anthropic' | 'google'. TRIAGE_LLM_PROVIDER env, if set, overrides this.
+  provider: text("provider").notNull().default("anthropic"),
+  // Record<provider, Record<node, modelId>>.
+  models: jsonb("models").notNull().default({}),
+  temperature: real("temperature").notNull().default(0),
+  maxTokens: integer("max_tokens").notNull().default(1024),
+  tracingEnabled: boolean("tracing_enabled").notNull().default(true),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type Submission = typeof submissions.$inferSelect;
 export type TriageRun = typeof triageRuns.$inferSelect;
 export type TriageAuditLog = typeof triageAuditLog.$inferSelect;
+export type AppSettingsRow = typeof appSettings.$inferSelect;
