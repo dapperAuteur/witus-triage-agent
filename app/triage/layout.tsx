@@ -16,7 +16,7 @@ export default async function TriageLayout({
 }) {
   const operator = await getOperatorEmail();
   if (!operator) {
-    redirect("/api/auth/signin");
+    redirect("/signin");
   }
 
   return (
