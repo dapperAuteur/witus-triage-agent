@@ -11,7 +11,7 @@
  * on a bad input (STYLEGUIDE §3).
  */
 import { ClassificationSchema } from "../schemas";
-import { getChatModel } from "../model";
+import { buildChatModel } from "../model";
 import type { TriageState, TriageStateUpdate } from "../state";
 
 const SYSTEM_PROMPT = `You are the triage classifier for WitUS Inbox, which collects \
@@ -51,10 +51,11 @@ export async function classify(
   ].join("\n");
 
   try {
-    const model = getChatModel({ temperature: 0 }).withStructuredOutput(
-      ClassificationSchema,
-      { name: "classify_submission" },
-    );
+    const model = (
+      await buildChatModel({ node: "classify", temperature: 0 })
+    ).withStructuredOutput(ClassificationSchema, {
+      name: "classify_submission",
+    });
     const classification = await model.invoke([
       ["system", SYSTEM_PROMPT],
       ["human", userMessage],

@@ -1,41 +1,41 @@
 /**
  * Chat-model factory for the triage agent.
  *
- * The agent supports two LLM providers so testing can run on Gemini's free
- * tier while production uses Claude:
+ * The agent runs on two providers — Anthropic Claude (production) and Google
+ * Gemini (free-tier testing) — with the model chosen **per graph node**. Which
+ * provider and which model each node uses is runtime configuration
+ * (`lib/settings.ts`), editable from the `/admin` dashboard — no redeploy.
  *
- *   - `anthropic` — Claude Sonnet 4.6. The production / launch model (PRD §5).
- *   - `google`    — Gemini 2.5 Flash. The default for local + CI testing.
+ * The pure types + default matrix live in `./model-config` (no imports) so a
+ * client component can use them without dragging this module's `pg` /
+ * `server-only` dependency chain into the browser bundle.
  *
- * Provider selection (highest precedence first):
- *   1. `TRIAGE_LLM_PROVIDER` env var, if set ("anthropic" | "google").
- *   2. `ANTHROPIC_API_KEY` present  -> anthropic.
- *   3. `GEMINI_API_KEY` present     -> google.
- *   4. otherwise -> throw a clear error.
- *
- * Both providers return a `BaseChatModel`, so `.withStructuredOutput()` works
- * identically downstream — nodes never branch on the provider.
+ * Provider resolution (highest precedence first):
+ *   1. `TRIAGE_LLM_PROVIDER` env var — a hard override (the accuracy eval
+ *      relies on being able to pin the provider this way).
+ *   2. the stored `app_settings.provider`.
+ *   3. a default from whichever API key is present.
  */
 import { ChatAnthropic } from "@langchain/anthropic";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { getEnv } from "@/lib/env";
+import { getSettings } from "@/lib/settings";
+import { DEFAULT_MODELS, type TriageLlmProvider, type TriageNode } from "./model-config";
 
-/** Claude Sonnet 4.6 — the production model (PRD §5). */
-export const ANTHROPIC_MODEL = "claude-sonnet-4-6";
-/** Gemini 2.5 Flash — the testing model (free-tier friendly). */
-export const GOOGLE_MODEL = "gemini-2.5-flash";
+export {
+  ANTHROPIC_MODEL,
+  GOOGLE_MODEL,
+  TRIAGE_NODES,
+  DEFAULT_MODELS,
+} from "./model-config";
+export type { TriageLlmProvider, TriageNode } from "./model-config";
 
-export type TriageLlmProvider = "anthropic" | "google";
-
-export interface ChatModelOptions {
-  /** Sampling temperature. Defaults to 0 — triage wants determinism. */
-  temperature?: number;
-  /** Max output tokens. */
-  maxTokens?: number;
-}
-
-/** Resolve which provider to use from the environment. */
+/**
+ * Resolve the provider purely from the environment — the `TRIAGE_LLM_PROVIDER`
+ * override, else whichever API key is present. The dashboard-stored provider
+ * is applied separately in `getSettings()`; this is the env-only view.
+ */
 export function resolveProvider(): TriageLlmProvider {
   const env = getEnv();
 
@@ -54,13 +54,8 @@ export function resolveProvider(): TriageLlmProvider {
 
   throw new Error(
     "No LLM provider configured. Set ANTHROPIC_API_KEY (production) or " +
-      "GEMINI_API_KEY (testing). See plans/user-tasks/01-provision-env-and-secrets.md.",
+      "GEMINI_API_KEY (testing).",
   );
-}
-
-/** The model id that will be used for the resolved provider. */
-export function activeModelId(): string {
-  return resolveProvider() === "anthropic" ? ANTHROPIC_MODEL : GOOGLE_MODEL;
 }
 
 /**
@@ -71,14 +66,34 @@ export function activeModelId(): string {
  */
 const MAX_RETRIES = 2;
 
-export function getChatModel(opts: ChatModelOptions = {}): BaseChatModel {
-  const env = getEnv();
-  const temperature = opts.temperature ?? 0;
-  const maxTokens = opts.maxTokens ?? 1024;
+export interface BuildChatModelOptions {
+  /** Which LLM-calling node this model is for — picks the per-node model id. */
+  node: TriageNode;
+  /** Overrides the settings-level temperature default for this call. */
+  temperature?: number;
+  /** Overrides the settings-level max-tokens default for this call. */
+  maxTokens?: number;
+}
 
-  if (resolveProvider() === "anthropic") {
+/**
+ * Build the chat model for a node using the active runtime settings (cached;
+ * see `getSettings`). Async because the settings come from the database.
+ */
+export async function buildChatModel(
+  opts: BuildChatModelOptions,
+): Promise<BaseChatModel> {
+  const env = getEnv();
+  const settings = await getSettings();
+  const provider = settings.provider;
+  const model =
+    settings.models[provider]?.[opts.node] ||
+    DEFAULT_MODELS[provider][opts.node];
+  const temperature = opts.temperature ?? settings.temperature;
+  const maxTokens = opts.maxTokens ?? settings.maxTokens;
+
+  if (provider === "anthropic") {
     return new ChatAnthropic({
-      model: ANTHROPIC_MODEL,
+      model,
       temperature,
       maxTokens,
       maxRetries: MAX_RETRIES,
@@ -87,10 +102,22 @@ export function getChatModel(opts: ChatModelOptions = {}): BaseChatModel {
   }
 
   return new ChatGoogleGenerativeAI({
-    model: GOOGLE_MODEL,
+    model,
     temperature,
     maxOutputTokens: maxTokens,
     maxRetries: MAX_RETRIES,
     apiKey: env.GEMINI_API_KEY,
   });
+}
+
+/**
+ * The model id the `classify` node will use under the current settings — used
+ * by the accuracy eval to record the model in EVAL.md.
+ */
+export async function activeModelId(): Promise<string> {
+  const settings = await getSettings();
+  return (
+    settings.models[settings.provider]?.classify ||
+    DEFAULT_MODELS[settings.provider].classify
+  );
 }
