@@ -24,8 +24,9 @@ human-in-the-loop interrupt that **pauses the graph** until an operator approves
 production code with a real database, real auth, and real failure handling — not a demo.
 
 It also runs on **two LLM providers from one codebase** — Gemini 2.5 Flash for
-development and CI, Claude Sonnet 4.6 for production — selected by environment, so the
-same agent can be tested cheaply and shipped on the stronger model.
+development and CI, Claude Sonnet 4.6 for production. The provider is selected by
+environment, and an admin dashboard at `/admin` picks the model **per graph node**, so
+the same agent can be tested cheaply and tuned without a redeploy.
 
 A 4-lesson curriculum under [`docs/lessons/`](docs/lessons/README.md) teaches the
 patterns this repo demonstrates.
@@ -159,7 +160,7 @@ is a real bug worth an issue.
 | Agent | `@langchain/langgraph` 1.x + `@langchain/langgraph-checkpoint-postgres` |
 | LLM | `@langchain/google-genai` (Gemini 2.5 Flash — testing) · `@langchain/anthropic` (Claude Sonnet 4.6 — production) |
 | Database | Postgres / Neon, via Drizzle ORM on `node-postgres` |
-| Auth | NextAuth v4 (magic-link, single-operator) |
+| Auth | NextAuth v4 (magic-link, single-operator) · deny + waitlist for non-operators |
 | Observability | LangSmith — optional, fail-soft |
 | UI | Tailwind v4, hand-rolled components in the WitUS Inbox identity |
 | Testing | Vitest |
@@ -193,11 +194,15 @@ agent/
   tools/            5 tools, each a tool() wrapper with a Zod schema
 app/
   api/triage/       start (HMAC webhook) · runs · runs/[id] · approve · reject
-  triage/           operator dashboard — queue, run detail, history
+  api/admin/        settings — per-node model configuration
+  triage/           operator dashboard — queue, run detail, history, waitlist
+  admin/            per-node LLM model picker
 db/
-  schema.ts         Drizzle schema — submission mirror + triage tables + auth
+  schema.ts         Drizzle schema — submission mirror, triage, app_settings,
+                    waitlist, auth tables
   migrations/
-lib/                env · auth · session · hmac · sms · langsmith · triage-runner
+lib/                env · auth · session · hmac · sms · langsmith · triage-runner ·
+                    settings · waitlist · inbox-sender
 docs/
   STYLEGUIDE.md     Code + style guide
   lessons/          The 4-lesson curriculum
@@ -234,7 +239,10 @@ npm run eval      # classification accuracy on the 25-fixture set -> EVAL.md
 ```
 
 `npm run eval` runs the classifier against all 25 hand-labeled fixtures and writes
-[`EVAL.md`](EVAL.md). The PRD's acceptance bar is ≥ 80% accuracy.
+[`EVAL.md`](EVAL.md). The PRD's acceptance bar is ≥ 80% accuracy; the current measured
+result is **100% (25/25)** on Claude Sonnet 4.6. The eval is hardened — an infrastructure
+failure (an exhausted quota, a bad key) aborts loudly instead of being scored as a wrong
+answer, so the number is never a false negative.
 [`__tests__/agent/graph.test.ts`](__tests__/agent/graph.test.ts) proves the approval
 gate: the graph pauses with no execution, and only a resume produces one.
 
