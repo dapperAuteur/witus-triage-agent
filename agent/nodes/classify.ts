@@ -14,6 +14,16 @@ import { ClassificationSchema } from "../schemas";
 import { buildChatModel } from "../model";
 import type { TriageState, TriageStateUpdate } from "../state";
 
+/**
+ * Prefix the fail-soft catch block writes into `rationale`. The accuracy eval
+ * (`__tests__/agent/accuracy.test.ts`) matches on this to tell an
+ * infrastructure failure apart from a real misclassification — single source
+ * of truth, imported by the test rather than re-typed. No trailing space; the
+ * template literal supplies the space before the error message.
+ */
+export const CLASSIFY_FAILSOFT_PREFIX =
+  'Classification failed; defaulted to "other".';
+
 const SYSTEM_PROMPT = `You are the triage classifier for WitUS Inbox, which collects \
 form submissions from across the WitUS product ecosystem (CentenarianOS, Work.WitUS, \
 FlashLearnAI, Wanderlearn, Fly.WitUS, witus.online, and others).
@@ -67,7 +77,7 @@ export async function classify(
       classification: {
         category: "other",
         confidence: 0,
-        rationale: `Classification failed; defaulted to "other". ${errorMessage}`,
+        rationale: `${CLASSIFY_FAILSOFT_PREFIX} ${errorMessage}`,
       },
     };
   }
