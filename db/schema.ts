@@ -219,7 +219,22 @@ export const appSettings = pgTable("app_settings", {
     .defaultNow(),
 });
 
+/* ------------------------------------------------------------------ */
+/* waitlist_signups — non-admins who tried to sign in and asked to be   */
+/* notified when the agent opens up. A unique email keeps re-signups    */
+/* idempotent. Surfaced on the /triage/waitlist dashboard.              */
+/* ------------------------------------------------------------------ */
+
+export const waitlistSignups = pgTable("waitlist_signups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type Submission = typeof submissions.$inferSelect;
 export type TriageRun = typeof triageRuns.$inferSelect;
 export type TriageAuditLog = typeof triageAuditLog.$inferSelect;
 export type AppSettingsRow = typeof appSettings.$inferSelect;
+export type WaitlistSignup = typeof waitlistSignups.$inferSelect;

@@ -46,6 +46,16 @@ const EnvSchema = z.object({
   /** Mobile Text Alerts — used by the escalateSms tool. */
   MOBILE_TEXT_ALERTS_API_KEY: z.string().min(1).optional(),
   MOBILE_TEXT_ALERTS_RECIPIENTS: z.string().optional(),
+
+  /**
+   * Outbound WitUS Inbox webhook — waitlist signups are published to the
+   * central Inbox. Distinct from TRIAGE_INGEST_SECRET (the inbound webhook).
+   * `lib/submit-to-inbox.ts` reads these from `process.env` directly; they
+   * are declared here for documentation + validation completeness.
+   */
+  INBOX_INGEST_URL: z.string().url().optional(),
+  INBOX_INGEST_SECRET: z.string().min(1).optional(),
+  INBOX_SOURCE_SLUG: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
