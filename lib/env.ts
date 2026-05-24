@@ -18,12 +18,39 @@ const EnvSchema = z.object({
   /** Direct/unpooled connection — used by drizzle-kit migrations + DDL. */
   STORAGE_DATABASE_URL_UNPOOLED: z.string().url().optional(),
 
-  /** Anthropic API key — the production LLM (Claude Sonnet 4.6). */
+  /** Anthropic API key — the paid production LLM (Claude Sonnet 4.6). */
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
-  /** Google Gemini API key — the testing LLM (Gemini 2.5 Flash, free tier). */
+  /** Google Gemini API key — the paid LLM (Gemini 2.5 Flash, also has a free tier). */
   GEMINI_API_KEY: z.string().min(1).optional(),
+  /** Cerebras free tier — Llama 3.3 70B via an OpenAI-compatible endpoint. */
+  CEREBRAS_API_KEY: z.string().min(1).optional(),
+  /** OpenRouter — `:free` models via OpenAI-compatible endpoint. */
+  OPENROUTER_API_KEY: z.string().min(1).optional(),
+  /** Mistral API key — its own SDK; free tier 1B tokens/month. */
+  MISTRAL_API_KEY: z.string().min(1).optional(),
+  /** Together AI — Llama 3.3 70B Turbo Free via OpenAI-compatible endpoint. */
+  TOGETHER_API_KEY: z.string().min(1).optional(),
+  /** Local Ollama base URL. Defaults to http://localhost:11434 in `model.ts`. */
+  OLLAMA_BASE_URL: z.string().url().optional(),
   /** Force a provider. Optional — auto-detected from the keys above if unset. */
-  TRIAGE_LLM_PROVIDER: z.enum(["anthropic", "google"]).optional(),
+  TRIAGE_LLM_PROVIDER: z
+    .enum([
+      "anthropic",
+      "google",
+      "ollama",
+      "cerebras",
+      "openrouter",
+      "mistral",
+      "together",
+    ])
+    .optional(),
+  /**
+   * Comma-separated fallback chain for `buildChatModelWithFallback`. When the
+   * primary throws, LangChain's `withFallbacks` tries each in turn. Example:
+   * `openrouter,anthropic` — OpenRouter catches Cerebras's daily quota, then
+   * Anthropic catches everything as the paid emergency tier.
+   */
+  TRIAGE_FALLBACK_PROVIDERS: z.string().optional(),
 
   /** LangSmith tracing — entirely optional; the SDK no-ops without it. */
   LANGSMITH_API_KEY: z.string().min(1).optional(),

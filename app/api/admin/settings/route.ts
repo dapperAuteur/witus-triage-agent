@@ -6,6 +6,7 @@ import {
   updateSettings,
 } from "@/lib/settings";
 import { getOperatorEmail } from "@/lib/session";
+import { TRIAGE_PROVIDERS } from "@/agent/model-config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,12 +17,17 @@ const nodeModelsSchema = z.object({
   draft_reply: z.string().trim().min(1),
 });
 
+// Build the seven-key models object schema from TRIAGE_PROVIDERS so adding a
+// new provider in one place propagates here automatically.
+const modelsSchema = z.object(
+  Object.fromEntries(
+    TRIAGE_PROVIDERS.map((p) => [p, nodeModelsSchema]),
+  ) as Record<(typeof TRIAGE_PROVIDERS)[number], typeof nodeModelsSchema>,
+);
+
 const settingsSchema = z.object({
-  provider: z.enum(["anthropic", "google"]),
-  models: z.object({
-    anthropic: nodeModelsSchema,
-    google: nodeModelsSchema,
-  }),
+  provider: z.enum(TRIAGE_PROVIDERS),
+  models: modelsSchema,
   temperature: z.number().min(0).max(2),
   maxTokens: z.number().int().min(64).max(8192),
   tracingEnabled: z.boolean(),

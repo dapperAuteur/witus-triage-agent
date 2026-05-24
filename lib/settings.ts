@@ -4,6 +4,7 @@ import { getDb } from "@/db/client";
 import { appSettings, type AppSettingsRow } from "@/db/schema";
 import {
   DEFAULT_MODELS,
+  TRIAGE_PROVIDERS,
   type TriageLlmProvider,
   type TriageNode,
 } from "@/agent/model-config";
@@ -37,6 +38,25 @@ export interface TriageSettings {
   tracingEnabled: boolean;
 }
 
+const VALID_PROVIDERS: ReadonlySet<TriageLlmProvider> = new Set(
+  TRIAGE_PROVIDERS,
+);
+
+/**
+ * Build the per-provider model map by spreading the built-in defaults under
+ * whatever the stored row has for that provider. Slots a row doesn't carry
+ * fall back to `DEFAULT_MODELS[provider][node]`.
+ */
+function mergedModels(
+  stored: Partial<Record<TriageLlmProvider, Partial<Record<TriageNode, string>>>>,
+): Record<TriageLlmProvider, Record<TriageNode, string>> {
+  const out = {} as Record<TriageLlmProvider, Record<TriageNode, string>>;
+  for (const provider of TRIAGE_PROVIDERS) {
+    out[provider] = { ...DEFAULT_MODELS[provider], ...stored[provider] };
+  }
+  return out;
+}
+
 /** Default provider when there is no stored row — from whichever key is set. */
 function keysDefaultProvider(): TriageLlmProvider {
   return getEnv().ANTHROPIC_API_KEY ? "anthropic" : "google";
@@ -50,16 +70,14 @@ export function resolveSettings(row: AppSettingsRow | null): TriageSettings {
   const stored = (row?.models ?? {}) as Partial<
     Record<TriageLlmProvider, Partial<Record<TriageNode, string>>>
   >;
+  const storedProvider = row?.provider as TriageLlmProvider | undefined;
   const provider =
-    row?.provider === "google" || row?.provider === "anthropic"
-      ? row.provider
+    storedProvider && VALID_PROVIDERS.has(storedProvider)
+      ? storedProvider
       : keysDefaultProvider();
   return {
     provider,
-    models: {
-      anthropic: { ...DEFAULT_MODELS.anthropic, ...stored.anthropic },
-      google: { ...DEFAULT_MODELS.google, ...stored.google },
-    },
+    models: mergedModels(stored),
     temperature: row?.temperature ?? DEFAULT_TEMPERATURE,
     maxTokens: row?.maxTokens ?? DEFAULT_MAX_TOKENS,
     tracingEnabled: row
@@ -71,7 +89,9 @@ export function resolveSettings(row: AppSettingsRow | null): TriageSettings {
 /** The `TRIAGE_LLM_PROVIDER` override, or null when unset/invalid. */
 export function providerOverride(): TriageLlmProvider | null {
   const value = (process.env.TRIAGE_LLM_PROVIDER ?? "").toLowerCase();
-  return value === "google" || value === "anthropic" ? value : null;
+  return VALID_PROVIDERS.has(value as TriageLlmProvider)
+    ? (value as TriageLlmProvider)
+    : null;
 }
 
 async function readRow(): Promise<AppSettingsRow | null> {
