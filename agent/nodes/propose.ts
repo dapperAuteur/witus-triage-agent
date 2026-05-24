@@ -14,7 +14,7 @@
  * `{ proposedAction }`. Fail-soft — any error becomes a `no_action` proposal.
  */
 import { z } from "zod";
-import { buildChatModel } from "../model";
+import { buildChatModelWithFallback } from "../with-fallback";
 import { draftReply } from "../tools/draftReply";
 import { ACTION_TYPES, type ProposedAction } from "../schemas";
 import type { TriageState, TriageStateUpdate } from "../state";
@@ -142,7 +142,7 @@ export async function propose(state: TriageState): Promise<TriageStateUpdate> {
 
   try {
     const model = (
-      await buildChatModel({ node: "propose", temperature: 0 })
+      await buildChatModelWithFallback({ node: "propose", temperature: 0 })
     ).withStructuredOutput(ProposeDecisionSchema, {
       name: "propose_action",
     });

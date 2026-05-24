@@ -4,20 +4,30 @@
  * The model-configuration form on /admin: LLM provider, a model id per
  * LLM-calling node, generation defaults, and the tracing toggle. Saves to
  * PUT /api/admin/settings; a save takes effect on the next triage run.
+ *
+ * Cost-class UX: the provider <select> groups Free and Paid options with
+ * <optgroup>, each option's label carries the cost class, and a persistent
+ * banner above the form shows the currently active cost class — amber when
+ * paid, so a switch to a billed provider is never invisible.
  */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
+  PROVIDER_COST_CLASS,
+  PROVIDER_LABELS,
   TRIAGE_NODES,
+  TRIAGE_PROVIDERS,
   type TriageLlmProvider,
   type TriageNode,
 } from "@/agent/model-config";
 import type { TriageSettings } from "@/lib/settings";
 
-const PROVIDERS: { value: TriageLlmProvider; label: string }[] = [
-  { value: "anthropic", label: "Anthropic (Claude)" },
-  { value: "google", label: "Google (Gemini)" },
-];
+const FREE_PROVIDERS = TRIAGE_PROVIDERS.filter(
+  (p) => PROVIDER_COST_CLASS[p] === "free",
+);
+const PAID_PROVIDERS = TRIAGE_PROVIDERS.filter(
+  (p) => PROVIDER_COST_CLASS[p] === "paid",
+);
 
 const NODE_META: Record<TriageNode, { label: string; hint: string }> = {
   classify: { label: "Classify", hint: "Assigns the submission a category." },
@@ -30,6 +40,37 @@ const CUSTOM = "__custom__";
 
 const MODEL_OPTIONS: Record<TriageLlmProvider, { id: string; label: string }[]> =
   {
+    ollama: [
+      { id: "llama3.1:8b", label: "Llama 3.1 8B (laptop-friendly)" },
+      { id: "llama3.1:70b", label: "Llama 3.1 70B (heavy local)" },
+      { id: "qwen2.5:14b", label: "Qwen 2.5 14B" },
+    ],
+    cerebras: [
+      { id: "llama-3.3-70b", label: "Llama 3.3 70B (fast)" },
+      { id: "llama3.1-8b", label: "Llama 3.1 8B" },
+    ],
+    openrouter: [
+      { id: "deepseek/deepseek-chat:free", label: "DeepSeek Chat (free)" },
+      {
+        id: "meta-llama/llama-3.3-70b-instruct:free",
+        label: "Llama 3.3 70B Instruct (free)",
+      },
+      {
+        id: "qwen/qwen-2.5-72b-instruct:free",
+        label: "Qwen 2.5 72B Instruct (free)",
+      },
+    ],
+    mistral: [
+      { id: "mistral-small-latest", label: "Mistral Small" },
+      { id: "mistral-large-latest", label: "Mistral Large" },
+    ],
+    together: [
+      {
+        id: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+        label: "Llama 3.3 70B Turbo (free)",
+      },
+      { id: "deepseek-ai/DeepSeek-V3", label: "DeepSeek V3" },
+    ],
     anthropic: [
       { id: "claude-opus-4-7", label: "Claude Opus 4.7 (most capable)" },
       { id: "claude-sonnet-4-6", label: "Claude Sonnet 4.6 (balanced)" },
@@ -60,17 +101,30 @@ interface Props {
   /** TRIAGE_LLM_PROVIDER, when set, overrides the stored provider at runtime. */
   envProviderOverride: TriageLlmProvider | null;
   hasLangsmithKey: boolean;
+  /** Which providers have an API key configured server-side. */
+  providerKeyPresent: Record<TriageLlmProvider, boolean>;
+}
+
+function providerOptionLabel(
+  p: TriageLlmProvider,
+  hasKey: boolean,
+): string {
+  const cost = PROVIDER_COST_CLASS[p] === "free" ? "Free" : "Paid";
+  const base = `${PROVIDER_LABELS[p]} · ${cost}`;
+  return hasKey ? base : `${base} · no API key set`;
 }
 
 export function SettingsForm({
   initialSettings,
   envProviderOverride,
   hasLangsmithKey,
+  providerKeyPresent,
 }: Props) {
   const [settings, setSettings] = useState<TriageSettings>(initialSettings);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
 
   const provider = settings.provider;
+  const activeCostClass = PROVIDER_COST_CLASS[provider];
 
   function patch(partial: Partial<TriageSettings>) {
     setSettings((s) => ({ ...s, ...partial }));
@@ -115,22 +169,63 @@ export function SettingsForm({
 
   return (
     <div className="space-y-6">
+      {/* Cost-class banner — amber when paid so a switch is never invisible. */}
+      <div
+        role="status"
+        aria-live="polite"
+        className={
+          "rounded-md border px-3 py-2 text-sm " +
+          (activeCostClass === "paid"
+            ? "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200"
+            : "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-200")
+        }
+      >
+        <strong>{PROVIDER_LABELS[provider]}</strong>{" "}
+        {activeCostClass === "paid"
+          ? "— billed per token. A paid provider is active."
+          : "— $0 in the normal case (rate-limited free tier or local)."}
+      </div>
+
       {/* Provider */}
       <div>
-        <h2 className="text-sm font-semibold">LLM provider</h2>
-        <div className="mt-2 flex gap-4">
-          {PROVIDERS.map((p) => (
-            <label key={p.value} className="flex items-center gap-2 text-sm">
-              <input
-                type="radio"
-                name="provider"
-                checked={provider === p.value}
-                onChange={() => patch({ provider: p.value })}
-              />
-              {p.label}
-            </label>
-          ))}
-        </div>
+        <label htmlFor="provider-select" className="text-sm font-semibold">
+          LLM provider
+        </label>
+        <p className="mt-1 text-xs text-slate-500">
+          Free providers are rate-limited but cost nothing. Paid providers
+          are billed per token and listed separately.
+        </p>
+        <select
+          id="provider-select"
+          value={provider}
+          onChange={(e) =>
+            patch({ provider: e.target.value as TriageLlmProvider })
+          }
+          className={`mt-2 ${FIELD_CLASS}`}
+        >
+          <optgroup label="Free (rate-limited, $0)">
+            {FREE_PROVIDERS.map((p) => (
+              <option key={p} value={p}>
+                {providerOptionLabel(p, providerKeyPresent[p])}
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="Paid (billed per token)">
+            {PAID_PROVIDERS.map((p) => (
+              <option key={p} value={p}>
+                {providerOptionLabel(p, providerKeyPresent[p])}
+              </option>
+            ))}
+          </optgroup>
+        </select>
+        {!providerKeyPresent[provider] && (
+          <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
+            No API key is configured for{" "}
+            <strong>{PROVIDER_LABELS[provider]}</strong>. Saving still records
+            this choice, but runs will fail until the key is set in{" "}
+            <code className="font-mono">.env.local</code>.
+          </p>
+        )}
         {envProviderOverride && (
           <p className="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">
             The <code className="font-mono">TRIAGE_LLM_PROVIDER</code> env var
@@ -143,7 +238,9 @@ export function SettingsForm({
 
       {/* Per-node model ids */}
       <div>
-        <h2 className="text-sm font-semibold">Model per node · {provider}</h2>
+        <h2 className="text-sm font-semibold">
+          Model per node · {PROVIDER_LABELS[provider]}
+        </h2>
         <p className="mt-1 text-xs text-slate-500">
           Pick a model for each LLM-calling node. Choose &ldquo;Custom model
           ID&rdquo; to enter one not in the list.

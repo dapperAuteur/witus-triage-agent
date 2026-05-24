@@ -11,7 +11,7 @@
  * on a bad input (STYLEGUIDE §3).
  */
 import { ClassificationSchema } from "../schemas";
-import { buildChatModel } from "../model";
+import { buildChatModelWithFallback } from "../with-fallback";
 import type { TriageState, TriageStateUpdate } from "../state";
 
 /**
@@ -62,7 +62,7 @@ export async function classify(
 
   try {
     const model = (
-      await buildChatModel({ node: "classify", temperature: 0 })
+      await buildChatModelWithFallback({ node: "classify", temperature: 0 })
     ).withStructuredOutput(ClassificationSchema, {
       name: "classify_submission",
     });
