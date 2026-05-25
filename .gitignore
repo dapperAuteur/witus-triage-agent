@@ -44,3 +44,15 @@ next-env.d.ts
 .env*.local
 /plans
 .claude/
+
+docs/lessons/01-chain-to-graph.pdf
+
+docs/lessons/02-agent-state.pdf
+
+docs/lessons/03-tools-and-approval.pdf
+
+docs/lessons/04-observability.pdf
+
+docs/lessons/README.pdf
+
+docs/STYLEGUIDE.pdf
