@@ -96,3 +96,9 @@ ecosystem-wide. It does **not** apply to code comments, READMEs, `ARCHITECTURE.m
 - **Agent nodes are pure functions of state** — side effects only in `execute` and
   `log_rejection`. Every tool has a Zod input schema. LangSmith tracing is on by default
   but the app must still run if `LANGSMITH_API_KEY` is missing (fail soft).
+
+---
+
+## Plans convention
+
+All implementation plans live in `./plans/` as markdown named `NN-description-of-plan.md` — two-digit numeric prefix, kebab-case slug, next available number, don't skip. Sub-queues: `./plans/user-tasks/NN-slug.md` (operator tasks), `./plans/bugs/`, `./plans/future/`. (`plans/` is typically gitignored — local working notes.) Full rule: `gemini/witus/CLAUDE.md` §"Plans convention".
