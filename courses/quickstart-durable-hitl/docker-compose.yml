@@ -1,0 +1,36 @@
+# Local Postgres for the Quickstart: Durable HITL Interrupts with Postgres Checkpointer.
+#
+# Scope reminder: this is a SINGLE-TENANT LOCAL demo. We are NOT covering
+# cloud-hosted Postgres, connection pooling at scale, TLS, or production
+# hardening — see the course README "Out of scope" list. One container, one
+# database, one learner.
+#
+#   docker compose up -d      # start Postgres in the background
+#   docker compose down       # stop it
+#   docker compose down -v     # stop it AND wipe the checkpoint tables (clean slate)
+#
+# The notebook connects on the URI:
+#   postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: durable-hitl-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - durable_hitl_pgdata:/var/lib/postgresql/data
+    # Healthcheck so `docker compose up -d --wait` blocks until Postgres is
+    # actually accepting connections — the notebook's setup() call needs this.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  durable_hitl_pgdata:

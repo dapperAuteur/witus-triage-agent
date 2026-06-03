@@ -1,0 +1,74 @@
+# CI smoke test for the "Durable HITL Interrupts" Quickstart notebook (PRD §8.6).
+# Executes the notebook end-to-end against a real Postgres service on pinned
+# SDKs. This is the regression guard: if a dependency bump breaks the crash
+# test or the Postgres swap, this goes red.
+#
+# Scoped to the course directory so it does NOT run on the host app's TS changes.
+name: quickstart-durable-hitl-smoke
+
+on:
+  push:
+    paths:
+      - "courses/quickstart-durable-hitl/**"
+      - ".github/workflows/quickstart-durable-hitl-smoke.yml"
+  pull_request:
+    paths:
+      - "courses/quickstart-durable-hitl/**"
+      - ".github/workflows/quickstart-durable-hitl-smoke.yml"
+
+jobs:
+  execute-notebook:
+    runs-on: ubuntu-latest
+
+    # The notebook connects to DB_URI; this service IS that Postgres.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      # Local-style URI pointing at the service container. No LANGSMITH_API_KEY
+      # is set on purpose: Lesson 4 fails soft and skips, so CI needs no secret.
+      DB_URI: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable
+
+    defaults:
+      run:
+        working-directory: courses/quickstart-durable-hitl
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install pinned deps
+        run: pip install -r requirements.txt
+
+      - name: Execute the notebook end-to-end
+        # --execute runs every cell; a cell error fails the job. The "STATE LOST"
+        # output is normal program output, not an exception, so it does not fail.
+        run: |
+          jupyter nbconvert --to notebook --execute \
+            --ExecutePreprocessor.timeout=180 \
+            --output _ci_executed.ipynb \
+            durable-hitl-quickstart.ipynb
+
+      - name: Upload executed notebook
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: executed-notebook
+          path: courses/quickstart-durable-hitl/_ci_executed.ipynb
+          if-no-files-found: ignore
