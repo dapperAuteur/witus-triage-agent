@@ -1,0 +1,18 @@
+# Quickstart: Durable HITL Interrupts with Postgres Checkpointer
+# Pinned so the notebook and the CI smoke test run against identical SDKs.
+# Python 3.11+ recommended.
+#
+# Scope reminder: Postgres checkpointer ONLY. We do not install the SQLite,
+# Redis, or in-memory-persistence extras — Postgres is the whole course.
+
+# --- LangGraph core + the Postgres checkpointer (the one surface we tour) ---
+langgraph==0.6.7
+langgraph-checkpoint-postgres==2.0.21
+psycopg[binary,pool]==3.2.3
+
+# --- LangSmith (Lesson 4: find the run, confirm the trace is continuous) ---
+langsmith==0.4.31
+
+# --- Notebook runtime ---
+jupyter==1.1.1
+python-dotenv==1.0.1
