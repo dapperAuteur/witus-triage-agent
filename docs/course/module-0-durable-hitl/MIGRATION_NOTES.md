@@ -91,7 +91,9 @@ green, clean `str` output.
 *Caveat:* this is **machine** execution (proves correctness + that the surface
 works by Lesson 2). The **human** read-through timer (PRD §8.3, target 30–45 min)
 is still a nice-to-have but is no longer a risk — the technical path is verified.
-The `_ci_executed.ipynb` artifact path is `.gitignore`d.
+The `_ci_executed.ipynb` artifact path is `.gitignore`d. A second run with tracing
+on also populated LangSmith and confirmed the Lesson 4 claim in a real trace
+(see §5).
 
 ---
 
@@ -106,10 +108,27 @@ opens *from* `bam-landing-page` (never this branch).
 
 ## 5. LangSmith project URL
 
-Project name: **`quickstart-durable-hitl`** (set via `LANGSMITH_PROJECT`). The
-shareable URL is generated the first time the notebook runs with a
-`LANGSMITH_API_KEY` (Lesson 4's "find your run" cell prints it). Pending task 09 /
-a keyed run.
+**Captured.** Re-ran the notebook with the three LangSmith vars
+(`LANGSMITH_API_KEY` from the app's `.env.local` / Vercel env, `LANGSMITH_TRACING=true`,
+`LANGSMITH_PROJECT=quickstart-durable-hitl` — isolated from the app's own
+`witus-triage-agent` project so demo traces don't pollute it).
+
+**Project URL** (org ID redacted — substitute your own LangSmith org ID):
+https://smith.langchain.com/o/<your-langsmith-org-id>/projects/p/d964b3ba-359d-4e0a-a0b6-0b890c583c86
+
+**The trace confirms Lesson 4 empirically** — root runs grouped by `thread_id`:
+- `durable-demo-1` → **2 runs** (the pause *and* the resume across the crash) ✅
+- `crash-test-mem` → **1 run** (memory: only the pause — nothing resumed, state lost) ✅
+- `patterns-demo` → 1 · `idempotency-demo` → 2.
+
+The durable thread carries both a pause and a resume sharing one `thread_id`; the
+memory thread carries only the pause. That contrast is the whole course, now
+visible in a real trace.
+
+**For the public / forkable artifact (PRD §4.3):** the project is private to the
+LangSmith org, so the URL above needs auth. To ship a *learner-forkable* link on
+the landing page, create a LangSmith **public share link** for the project
+(operator step — noted in task 12).
 
 ---
 
@@ -117,7 +136,7 @@ a keyed run.
 
 | Task | Blocks |
 |---|---|
-| 09 — local Postgres demo env | ~~Notebook execution~~ **DONE (verified green, §3)**. Still gates: the recording run on BAM's machine + the real LangSmith URL (needs a key). |
+| 09 — local Postgres demo env | ~~Notebook execution~~ **DONE (verified green, §3)** · ~~real LangSmith URL~~ **DONE (captured, §5)**. Still gates only the recording run on BAM's machine. |
 | 10 — recording stack | Recording the video (⚠️ STOP for BAM approval before recording) |
 | 11 — video host signup | The landing-page embed URL |
 | 12 — bam-landing-page 🟡→🟢 PR | The course's public "Live" status (waits on 09/10/11) |
