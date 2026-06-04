@@ -51,14 +51,14 @@ Postgres, eval, or multi-agent design (see the course README out-of-scope list).
       from its first line on resume. Put no DB writes, no charges, no emails, no
       counters *before* the `interrupt()` call. Do side effects in the node
       *after* the gate, where they run exactly once. (TS reference:
-      [`agent/nodes/humanApproval.ts`](../../agent/nodes/humanApproval.ts);
+      [`agent/nodes/humanApproval.ts`](../../../agent/nodes/humanApproval.ts);
       `agent/nodes/execute.ts` is where the side effect belongs.)
 
 ## 4. Don't let drizzle / your ORM manage the checkpoint tables
 - [ ] The `checkpoints`, `checkpoint_writes`, and `checkpoint_blobs` tables are
       **library-managed**. Exclude them from your migration tool's schema so it
       doesn't try to drop or alter them. (In this repo, they're deliberately
-      absent from `db/schema.ts` — see [`agent/checkpointer.ts`](../../agent/checkpointer.ts).)
+      absent from `db/schema.ts` — see [`agent/checkpointer.ts`](../../../agent/checkpointer.ts).)
 
 ## 5. Use the unpooled connection for `setup()` if you're behind a pooler
 - [ ] DDL through a transaction pooler (PgBouncer, Neon pooled URL) can misbehave.

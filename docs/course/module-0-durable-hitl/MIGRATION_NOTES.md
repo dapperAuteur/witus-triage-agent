@@ -12,15 +12,19 @@ Branch: `feat/langchain-academy-quickstart` · Date: 2026-06-02
 
 ## 1. Files changed (paths only)
 
-**Course (new, self-contained, MIT — the forkable exit artifact):**
-- `courses/quickstart-durable-hitl/durable-hitl-quickstart.ipynb` — the one notebook, 4 lessons, 28 cells
-- `courses/quickstart-durable-hitl/README.md` — scope statement + outline + APA-7 refs
-- `courses/quickstart-durable-hitl/docker-compose.yml` — local Postgres
-- `courses/quickstart-durable-hitl/requirements.txt` — pinned Python SDKs
-- `courses/quickstart-durable-hitl/migration-checklist.md` — the durable take-home
-- `courses/quickstart-durable-hitl/video-script.md` — full script + pre/post production + screen-recording shot list
-- `courses/quickstart-durable-hitl/.env.example` — env template (no LLM key by design)
-- `courses/quickstart-durable-hitl/.gitignore` — keeps notebook the single source of truth
+**Course (new, self-contained, MIT — the forkable exit artifact).** Organized as
+a single module under `docs/course/`, mirroring the `centenarian-coach-multiagent`
+`docs/course/module-N-<slug>/` convention. One notebook = one module (the
+one-notebook/one-video Quickstart discipline forbids splitting into per-lesson
+modules), so all content lives in `docs/course/module-0-durable-hitl/`:
+- `docs/course/module-0-durable-hitl/durable-hitl-quickstart.ipynb` — the one notebook, 4 lessons, 31 cells (incl. an optional-steps roadmap + a commented-out real-LLM bonus cell)
+- `docs/course/module-0-durable-hitl/README.md` — scope statement + outline + APA-7 refs
+- `docs/course/module-0-durable-hitl/docker-compose.yml` — local Postgres
+- `docs/course/module-0-durable-hitl/requirements.txt` — pinned Python SDKs
+- `docs/course/module-0-durable-hitl/migration-checklist.md` — the durable take-home
+- `docs/course/module-0-durable-hitl/video/video-script.md` — full script + pre/post production + screen-recording shot list (co-located in the module's `video/` subdir)
+- `docs/course/module-0-durable-hitl/.env.example` — env template (no LLM key by design)
+- `docs/course/module-0-durable-hitl/.gitignore` — keeps notebook the single source of truth
 
 **Repo infra (new):**
 - `.github/workflows/quickstart-durable-hitl-smoke.yml` — CI smoke test (PRD §8.6)
@@ -64,7 +68,7 @@ timer, not a design gap.
 
 **Pending — blocked on operator task 09.** The build environment had no Docker
 and no installed Python SDKs, so the notebook is **authored, JSON-validated
-(28 cells, nbformat 4.5), and Python-syntax-checked (0 errors across all code
+(31 cells, nbformat 4.5), and Python-syntax-checked (0 errors across all code
 cells)**, and CI-guarded — but **not yet executed end-to-end**. The empirical
 timer (PRD §8.2) and the test-reader walkthrough (§8.3) run once Docker is
 available on the recording machine (task 09); the real number then replaces this

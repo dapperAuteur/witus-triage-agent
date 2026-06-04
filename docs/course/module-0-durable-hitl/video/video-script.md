@@ -263,7 +263,7 @@ highlight ON. Each shot below is one continuous capture; edit points are in §4.
 - **Hold:** freeze 2s on the green **"OK resumed across the crash → EXECUTED:
   …"** line. Punch-in 1.5×.
 
-### SR-6 · Lesson 2, proof in the DB (4:40–5:30)
+### SR-6 · Lesson 2, proof in the DB (4:40–5:30)  ☆ BONUS (optional — see §6)
 - **On screen:** the `SELECT thread_id, count(*) FROM checkpoints` cell output.
 - **Action:** run it; the `durable-demo-1` row with its checkpoint count appears.
   Cursor-underline the `durable-demo-1` row.
@@ -285,13 +285,13 @@ highlight ON. Each shot below is one continuous capture; edit points are in §4.
 - **Action:** scroll so the full blockquote is centered; cursor-trace the
   "no DB writes, no non-idempotent work before the interrupt" line.
 
-### SR-10 · Lesson 4, find the run (8:00–8:40)
+### SR-10 · Lesson 4, find the run (8:00–8:40)  ☆ BONUS (optional — see §6)
 - **On screen:** the LangSmith "find your run" cell output (the printed run list
   with `thread=` + URLs).
 - **Action:** run it; hover a `durable-demo-1` run URL, click it (opens browser
   tab).
 
-### SR-11 · Lesson 4, the trace UI (8:40–9:30)  ★ payoff
+### SR-11 · Lesson 4, the trace UI (8:40–9:30)  ★ payoff · ☆ BONUS (optional — see §6)
 - **On screen:** LangSmith project view in the browser.
 - **Action:** type `durable-demo-1` into the thread/metadata filter; open the
   **resumed** run; expand the run tree to show `human_approval → finalize` (NOT
@@ -305,8 +305,44 @@ highlight ON. Each shot below is one continuous capture; edit points are in §4.
 
 ---
 
+## 6. Bonus footage (optional segments)
+
+These shots cover the notebook's **optional steps** (tagged ☆ above and marked
+"(Optional — bonus footage)" in the notebook itself). **Film all of them**, but
+treat them as *bonus footage*: the ~10-minute core cut is complete without them,
+and any one can be dropped to hit the runtime cap or if a dependency (a LangSmith
+key, an LLM key) isn't configured at record time. Capture them in this order so a
+single take yields both the core cut and the bonus reel.
+
+| Bonus shot | Covers notebook optional step | Drop it if… | If kept, where it slots |
+|---|---|---|---|
+| **SR-6** — checkpoint rows in Postgres | #2 "peek at the checkpoint rows" | runtime is tight | extends Lesson 2 by ~30s after the durable rerun |
+| **SR-10 + SR-11** — LangSmith find-the-run + trace UI | #1 "LangSmith verification (Lesson 4)" | no `LANGSMITH_API_KEY` configured | the whole of Lesson 4 (8:00–9:30) |
+| **NEW: SR-13** — real-LLM swap | #3 "swap in a real LLM node" | no model API key, or runtime is tight | a 30–45s tag after Lesson 3, before the outro |
+
+### SR-13 · Bonus, the real-LLM swap (optional, ~40s)
+- **On screen:** the end-of-notebook **commented-out** "OPTIONAL / BONUS STEP #3"
+  cell.
+- **Action:** scroll to the cell; cursor-trace the commented `propose_with_llm`
+  function. *Optionally* (only if `ANTHROPIC_API_KEY` is set and you've installed
+  `langchain-anthropic`) uncomment it, swap it into the graph, and rerun the
+  Lesson 2 crash test to show the model-written proposal surviving the restart.
+- **Voiceover (bonus):** "Durability never cared about the model — here's a real
+  Claude node writing the proposal, and the exact same crash test still resumes
+  it. The checkpointer doesn't know or care that a model is in the loop."
+- **Note:** if you don't enable it, just narrate over the commented cell — the
+  point (durability is model-independent) lands either way.
+
+**Editing the bonus reel:** keep the core 10-min cut as `…_v1.mp4`. Assemble the
+kept bonus shots into the timeline at the slots above for a `…_v1-extended.mp4`,
+and/or export them standalone as `bonus-*.mp4` for the course page. Chapters for
+any kept bonus segment: "Bonus · checkpoint rows", "Bonus · real-LLM swap"
+(Lesson 4 already has its own chapter).
+
+---
+
 *Branding note:* all titles, lower-thirds, and the end card use the WitUS Inbox
 violet-on-slate identity and logo variant `04-orbit-type` per
-[`docs/STYLEGUIDE.md`](../../docs/STYLEGUIDE.md). If a Rise Wellness callout
+[`docs/STYLEGUIDE.md`](../../../STYLEGUIDE.md). If a Rise Wellness callout
 appears anywhere in the end card, the disclaimer text is **byte-identical** to
 the brand package — never paraphrased.
