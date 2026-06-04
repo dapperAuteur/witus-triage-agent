@@ -12,8 +12,13 @@ Postgres, eval, or multi-agent design (see the course README out-of-scope list).
 ## 0. Prerequisites
 - [ ] Your agent already pauses with `interrupt()` (or you add a `human_*` node
       that does). If it doesn't pause, there's nothing to make durable yet.
-- [ ] You can reach a Postgres instance. Locally: copy this directory's
-      `docker-compose.yml` and `docker compose up -d --wait`.
+- [ ] You can reach a Postgres instance. No Docker Desktop required — pick any:
+      **(A)** Docker engine via Colima (`brew install colima docker docker-compose
+      && colima start`, then `docker compose up -d --wait` with this dir's
+      `docker-compose.yml`); **(B)** Postgres.app (native macOS, zero containers —
+      set `DB_URI=postgresql://localhost:5432/postgres?sslmode=disable`); or
+      **(C)** Homebrew (`brew install postgresql@16 && brew services start
+      postgresql@16`). The notebook/agent only needs the `DB_URI` string.
 
 ## 1. Install the checkpointer
 - [ ] `pip install langgraph-checkpoint-postgres "psycopg[binary,pool]"`
