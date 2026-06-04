@@ -89,19 +89,53 @@ split further.
 # 1. Python deps (3.11+). A virtualenv is recommended.
 pip install -r requirements.txt
 
-# 2. Start local Postgres (used from Lesson 2 on).
-docker compose up -d --wait
+# 2. Start a local Postgres (used from Lesson 2 on) — pick ONE option below.
 
 # 3. (Optional, for Lesson 4) copy env and add your LangSmith key.
-cp .env.example .env   # then edit LANGSMITH_API_KEY
+cp .env.example .env   # then edit LANGSMITH_API_KEY (and DB_URI if needed)
 
 # 4. Launch the notebook.
 jupyter notebook durable-hitl-quickstart.ipynb
 ```
 
-You need **Docker** and **Python 3.11+**. You do **not** need an LLM API key.
-LangSmith is optional — the notebook runs without it; Lesson 4 is the only part
-that uses it, and it fails soft if the key is missing.
+You need **Python 3.11+** and **a local Postgres**. You do **not** need an LLM
+API key. LangSmith is optional — the notebook runs without it; Lesson 4 is the
+only part that uses it, and it fails soft if the key is missing.
+
+### Pick a Postgres (no Docker Desktop required)
+
+The notebook only cares about the `DB_URI` connection string — *anything* serving
+Postgres at that URI works. Docker Desktop dropped support for older macOS, so
+here are three Docker-Desktop-free paths:
+
+**Option A — Docker engine via Colima** (keeps the `docker compose` flow as-is;
+good on macOS where Docker Desktop is unsupported):
+```bash
+brew install colima docker docker-compose
+colima start
+docker compose up -d --wait          # uses this dir's docker-compose.yml
+# (if `docker compose` isn't found, use the hyphenated `docker-compose up -d`)
+```
+
+**Option B — Postgres.app** (native macOS, zero containers, least friction):
+1. Download from https://postgresapp.com, move to Applications, click **Initialize**.
+2. Skip the compose step. Set this in `.env`:
+   ```bash
+   DB_URI=postgresql://localhost:5432/postgres?sslmode=disable
+   ```
+The notebook's `make_checkpointer("postgres")` runs `setup()` and creates the
+checkpoint tables in that database for you.
+
+**Option C — Homebrew Postgres**:
+```bash
+brew install postgresql@16 && brew services start postgresql@16
+# then set DB_URI in .env as in Option B
+```
+
+Default credentials in `.env.example` (`postgres:postgres@localhost:5432`) match
+Option A's `docker-compose.yml`. For Options B and C, override `DB_URI` in `.env`
+as shown — those serve Postgres under your macOS username with trust auth on
+localhost, so no password is needed.
 
 ### Forking this into your own repo
 
