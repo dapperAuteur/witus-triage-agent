@@ -113,8 +113,8 @@ opens *from* `bam-landing-page` (never this branch).
 `LANGSMITH_PROJECT=quickstart-durable-hitl` — isolated from the app's own
 `witus-triage-agent` project so demo traces don't pollute it).
 
-**Project URL** (org ID redacted — substitute your own LangSmith org ID):
-https://smith.langchain.com/o/<your-langsmith-org-id>/projects/p/d964b3ba-359d-4e0a-a0b6-0b890c583c86
+**Project URL** (org + project IDs redacted — substitute your own LangSmith IDs):
+https://smith.langchain.com/o/<your-langsmith-org-id>/projects/p/<your-langsmith-project-id>
 
 **The trace confirms Lesson 4 empirically** — root runs grouped by `thread_id`:
 - `durable-demo-1` → **2 runs** (the pause *and* the resume across the crash) ✅
