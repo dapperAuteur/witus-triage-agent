@@ -72,8 +72,9 @@ and `witus-inbox`. Every color must work in both themes — pair `light` and `da
 - Data fetching degrades gracefully: a cached read is clearly labelled as cached.
 - `next/font` (Geist) is self-hosted — no runtime font fetch.
 
-> Day-1 note: the service worker / manifest land with the UI (Day 5). This section is the
-> contract that work follows.
+> Shipped: the service worker (`public/sw.js`, registered by
+> `components/service-worker-register.tsx`) and the manifest (`public/manifest.webmanifest`)
+> are live. This section is the contract they uphold.
 
 ---
 
@@ -139,6 +140,14 @@ and `witus-inbox`. Every color must work in both themes — pair `light` and `da
   copyright) is implemented per `gemini/witus/public/brand/footer-recipe.md` with the
   violet swap. The Rise Wellness non-affiliation disclaimer is **byte-identical** — never
   paraphrased.
+- **The menu (`SiteHeader`) and the ecosystem footer (`SiteFooter`) render on every page**,
+  once, from the root layout (`app/layout.tsx`) — never per-route. `SiteHeader` is
+  **auth-aware** (it reads the operator session): a signed-out visitor gets a minimal nav
+  (Help, Sign in); the operator gets the full dashboard nav. The nav collapses to a
+  hamburger below `sm` (`components/header-nav.tsx`, the only client part).
+- User-facing help is a public route at **`/help`** (`app/help/page.tsx`), mirrored as
+  markdown in `docs/operator-guide/`. Keep the category/action vocab on both in sync with
+  `agent/schemas.ts`.
 
 ---
 

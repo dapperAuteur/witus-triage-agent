@@ -2,9 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 /**
- * Day-1 landing page. Internal-tool styling — WitUS Inbox identity
- * (violet on slate). The real operator UI (/triage queue + run detail)
- * lands on Day 5. Mobile-first, both themes, keyboard-reachable.
+ * Public landing page. Internal-tool styling — WitUS Inbox identity
+ * (violet on slate). The operator UI lives behind sign-in at /triage;
+ * /help is the public operator guide. Mobile-first, both themes,
+ * keyboard-reachable. Menu + footer come from the root layout.
  */
 export default function Home() {
   return (
@@ -66,8 +67,14 @@ export default function Home() {
             Open the triage queue →
           </Link>
           <p className="mt-2 text-xs text-slate-500">
-            Operator sign-in required. See{" "}
-            <code className="font-mono">README.md</code> to run locally.
+            Operator sign-in required. New here? Read the{" "}
+            <Link
+              href="/help"
+              className="text-violet-700 hover:underline dark:text-violet-400"
+            >
+              operator guide
+            </Link>
+            , or see <code className="font-mono">README.md</code> to run locally.
           </p>
         </div>
       </div>
