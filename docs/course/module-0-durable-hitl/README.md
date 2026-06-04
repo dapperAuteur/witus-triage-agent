@@ -51,7 +51,7 @@ durability.
 
 A four-node triage graph — `intake → propose → human_approval → finalize` — a
 deliberately minimal version of the production
-[WitUS Triage Agent](../../agent/graph.ts) that ships in this repo. The
+[WitUS Triage Agent](../../../agent/graph.ts) that ships in this repo. The
 `human_approval` node calls `interrupt()`. You will prove that:
 
 1. Under `MemorySaver`, a worker restart **destroys** the paused thread.
@@ -80,6 +80,19 @@ top to bottom.
 Lessons 3 and 4 are kept distinct because they answer different questions
 ("*why* does it survive?" vs "*show me* it survived"). The Quickstart does not
 split further.
+
+### Optional / bonus steps
+
+The core crash-test → fix → verify path runs with just Python + Postgres. Three
+steps are **optional** — tagged inline in the notebook as "(Optional — bonus
+footage)" and filmed as bonus footage in [`video/video-script.md`](./video/video-script.md) §6:
+
+1. **LangSmith verification (Lesson 4).** Needs a `LANGSMITH_API_KEY`; skips
+   automatically without one. To do it: set the key in `.env` and rerun Lesson 2.
+2. **Peek at the checkpoint rows in Postgres (Lesson 2).** A "see the proof"
+   `SELECT` — satisfying, not required.
+3. **Swap in a real LLM node (end-of-notebook bonus).** Ships **commented out**
+   with instructions, so the core demo needs no model API key.
 
 ---
 

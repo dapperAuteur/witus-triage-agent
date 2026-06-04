@@ -9,11 +9,11 @@ name: quickstart-durable-hitl-smoke
 on:
   push:
     paths:
-      - "courses/quickstart-durable-hitl/**"
+      - "docs/course/module-0-durable-hitl/**"
       - ".github/workflows/quickstart-durable-hitl-smoke.yml"
   pull_request:
     paths:
-      - "courses/quickstart-durable-hitl/**"
+      - "docs/course/module-0-durable-hitl/**"
       - ".github/workflows/quickstart-durable-hitl-smoke.yml"
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: courses/quickstart-durable-hitl
+        working-directory: docs/course/module-0-durable-hitl
 
     steps:
       - uses: actions/checkout@v4
@@ -70,5 +70,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: executed-notebook
-          path: courses/quickstart-durable-hitl/_ci_executed.ipynb
+          path: docs/course/module-0-durable-hitl/_ci_executed.ipynb
           if-no-files-found: ignore
