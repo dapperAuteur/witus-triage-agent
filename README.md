@@ -151,6 +151,23 @@ is a real bug worth an issue.
 
 ---
 
+## For operators (no code required)
+
+If you just need to *use* the dashboard — review the queue, approve or reject — start with
+the **operator guide**, written in plain language with no setup steps:
+
+- In the running app: **[`/help`](http://localhost:3000/help)** (linked from the menu and
+  footer; reachable without signing in).
+- As markdown: **[`docs/operator-guide/`](docs/operator-guide/README.md)** — getting
+  started, the queue, reading a run, approving/rejecting, what the categories mean, and an
+  FAQ.
+
+The menu and ecosystem footer appear on every page; the menu is auth-aware (a minimal
+header signed out, the full dashboard nav once you sign in) and collapses to a hamburger on
+small screens.
+
+---
+
 ## Tech stack
 
 | Layer | Choice |
@@ -193,6 +210,8 @@ agent/
   nodes/            classify · enrich · propose · humanApproval · execute · logRejection
   tools/            5 tools, each a tool() wrapper with a Zod schema
 app/
+  layout.tsx        root layout — shared menu + ecosystem footer on every page
+  help/             public operator help (in-app onboarding guide)
   api/triage/       start (HMAC webhook) · runs · runs/[id] · approve · reject
   api/admin/        settings — per-node model configuration
   triage/           operator dashboard — queue, run detail, history, waitlist
@@ -205,6 +224,7 @@ lib/                env · auth · session · hmac · sms · langsmith · triage
                     settings · waitlist · inbox-sender
 docs/
   STYLEGUIDE.md     Code + style guide
+  operator-guide/   Plain-language guide for non-developer operators
   lessons/          The 4-lesson curriculum
 __tests__/          Vitest suites + 25 labeled fixtures
 ```

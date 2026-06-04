@@ -76,6 +76,11 @@ export function SiteFooter() {
                   History
                 </Link>
               </li>
+              <li>
+                <Link href="/help" className={linkClasses}>
+                  Help
+                </Link>
+              </li>
             </ul>
           </div>
 

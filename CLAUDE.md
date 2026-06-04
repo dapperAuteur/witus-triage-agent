@@ -38,6 +38,12 @@ Wellness callout) and the favicons are copied from the brand package — see
 `docs/STYLEGUIDE.md` in this repo for the resolved tokens and rules. The Rise Wellness
 non-affiliation disclaimer must stay **byte-identical** — never paraphrase it.
 
+The WitUS menu (`SiteHeader`) and ecosystem footer (`SiteFooter`) must appear on **every**
+page, rendered once from the root layout (`app/layout.tsx`) — never per-route. The menu is
+auth-aware (minimal signed out, full dashboard nav for the operator) and collapses to a
+hamburger on mobile. User-facing help lives at `/help` (`app/help/page.tsx`), mirrored in
+`docs/operator-guide/`.
+
 ---
 
 ## Operator-task rule
@@ -96,6 +102,11 @@ ecosystem-wide. It does **not** apply to code comments, READMEs, `ARCHITECTURE.m
 - **Agent nodes are pure functions of state** — side effects only in `execute` and
   `log_rejection`. Every tool has a Zod input schema. LangSmith tracing is on by default
   but the app must still run if `LANGSMITH_API_KEY` is missing (fail soft).
+- **Shipped UI:** the operator dashboard (`/triage`, `/triage/[id]`, `/triage/history`,
+  `/triage/waitlist`, `/admin`), the offline service worker, and the public operator help
+  (`/help` + `docs/operator-guide/`) are all live. Menu + ecosystem footer render on every
+  page from the root layout — see the Branding section. When app behavior changes, keep
+  `/help`, `docs/operator-guide/`, and the README "For operators" section current.
 
 ---
 

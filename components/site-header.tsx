@@ -1,14 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
+import { getOperatorEmail } from "@/lib/session";
+import { HeaderNav } from "./header-nav";
 
-const navLink =
-  "rounded px-3 py-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 " +
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 " +
-  "dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100";
+/**
+ * Site header — rendered once from the root layout, so it appears on every page.
+ * Auth-aware: a signed-out visitor gets a minimal nav (Help, Sign in); the
+ * operator gets the full dashboard nav. Reading the session here opts routes
+ * into dynamic rendering, which is fine for an operator tool.
+ */
+export async function SiteHeader() {
+  const authenticated = Boolean(await getOperatorEmail());
 
-export function SiteHeader() {
   return (
-    <header className="border-b border-slate-200 dark:border-slate-800">
+    <header className="relative border-b border-slate-200 dark:border-slate-800">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-3">
         <Link
           href="/"
@@ -26,20 +31,7 @@ export function SiteHeader() {
             WitUS <span className="text-violet-600 dark:text-violet-400">Triage</span>
           </span>
         </Link>
-        <nav aria-label="Primary" className="flex items-center gap-1 text-sm">
-          <Link href="/triage" className={navLink}>
-            Queue
-          </Link>
-          <Link href="/triage/history" className={navLink}>
-            History
-          </Link>
-          <Link href="/triage/waitlist" className={navLink}>
-            Waitlist
-          </Link>
-          <Link href="/admin" className={navLink}>
-            Admin
-          </Link>
-        </nav>
+        <HeaderNav authenticated={authenticated} />
       </div>
     </header>
   );
