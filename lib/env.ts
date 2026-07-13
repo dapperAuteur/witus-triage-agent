@@ -67,6 +67,17 @@ const EnvSchema = z.object({
   /** From-address for magic-link emails, e.g. "WitUS Triage <triage@…>". */
   EMAIL_FROM: z.string().min(1).optional(),
 
+  /**
+   * "Sign in with WitUS" ecosystem OIDC provider (accounts.witus.online).
+   * The provider is enabled only when WITUS_OIDC_CLIENT_ID is set. Read from
+   * `process.env` directly in `lib/auth.ts`; declared here for documentation +
+   * validation completeness. NEXT_PUBLIC_WITUS_SSO (the button's build-time
+   * visibility flag) is client-side and intentionally not in this server schema.
+   */
+  WITUS_OIDC_CLIENT_ID: z.string().min(1).optional(),
+  WITUS_OIDC_CLIENT_SECRET: z.string().min(1).optional(),
+  WITUS_OIDC_DISCOVERY_URL: z.string().url().optional(),
+
   /** Shared HMAC secret for the inbox -> /api/triage/start webhook. */
   TRIAGE_INGEST_SECRET: z.string().min(16).optional(),
 

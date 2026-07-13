@@ -26,6 +26,11 @@ const INPUT_CLASS =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 " +
   "dark:border-slate-700 dark:bg-slate-950";
 
+// "Sign in with WitUS" (ecosystem OIDC) is a client-rendered button, so its
+// visibility is gated on the public build-time flag rather than the server-only
+// WITUS_OIDC_CLIENT_ID that enables the provider itself. Set both together.
+const WITUS_SSO_ENABLED = Boolean(process.env.NEXT_PUBLIC_WITUS_SSO);
+
 export function SignInForm() {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<State>({ kind: "idle" });
@@ -176,6 +181,24 @@ export function SignInForm() {
       <Button type="submit" variant="primary" disabled={pending}>
         {pending ? "Working…" : "Continue"}
       </Button>
+      {WITUS_SSO_ENABLED && (
+        <>
+          <div className="flex items-center gap-3 py-1 text-xs text-slate-400">
+            <span className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+            or
+            <span className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={pending}
+            className="w-full"
+            onClick={() => signIn("witus", { callbackUrl: "/triage" })}
+          >
+            Sign in with WitUS
+          </Button>
+        </>
+      )}
     </form>
   );
 }
