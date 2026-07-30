@@ -52,6 +52,24 @@ const EnvSchema = z.object({
    */
   TRIAGE_FALLBACK_PROVIDERS: z.string().optional(),
 
+  /**
+   * Error monitoring (Better Stack, ingesting the `@sentry/nextjs` SDK). Entirely optional: with
+   * no DSN the SDK never calls `init()` and is inert.
+   *
+   * Declared here for documentation and validation completeness only. The runtime configs
+   * (`sentry.server.config.ts`, `sentry.edge.config.ts`, `instrumentation-client.ts`) read
+   * `process.env` DIRECTLY, because this module imports `server-only` and those files also load in
+   * the browser and instrumentation contexts. `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN`
+   * are build-time only (source map upload) and read in `next.config.ts`.
+   *
+   * Not `.url()` on purpose: a malformed DSN must never make `getEnv()` throw and take the app
+   * down. A bad DSN should cost us the error report, not the request.
+   */
+  SENTRY_DSN: z.string().min(1).optional(),
+  SENTRY_ENVIRONMENT: z.string().min(1).optional(),
+  SENTRY_ORG: z.string().min(1).optional(),
+  SENTRY_PROJECT: z.string().min(1).optional(),
+
   /** LangSmith tracing — entirely optional; the SDK no-ops without it. */
   LANGSMITH_API_KEY: z.string().min(1).optional(),
   LANGSMITH_PROJECT: z.string().min(1).optional(),

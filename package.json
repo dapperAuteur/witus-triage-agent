@@ -27,6 +27,7 @@
     "@langchain/mistralai": "^1.1.0",
     "@langchain/ollama": "^1.2.7",
     "@langchain/openai": "^1.4.7",
+    "@sentry/nextjs": "^10.69.0",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "geist": "^1.7.0",
