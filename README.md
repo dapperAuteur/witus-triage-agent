@@ -214,6 +214,7 @@ app/
   layout.tsx        root layout — shared menu + ecosystem footer on every page
   help/             public operator help (in-app onboarding guide)
   api/triage/       start (HMAC webhook) · runs · runs/[id] · approve · reject
+  api/health/       uptime probe · `select 1` against Postgres · never cached
   api/admin/        settings — per-node model configuration
   triage/           operator dashboard — queue, run detail, history, waitlist
   admin/            per-node LLM model picker
@@ -283,6 +284,56 @@ guarded in both directions by `__tests__/lib/sentry-scrub.test.ts` (redaction **
 counter-assertions against over-redaction), plus an inertness test.
 Errors are tagged `triage.surface` = `webhook` | `api` | `ui`, because a machine-to-machine
 webhook failure has nobody watching a screen.
+
+### Uptime monitoring: point monitors at `/api/health`, not at `/`
+
+**Point every uptime monitor (Better Stack and anything else) at
+`https://<host>/api/health`.** A monitor aimed at `/` can be served a 200 out of the CDN
+cache while Postgres is unreachable, so the green check proves only that the CDN is up.
+
+`GET /api/health` (and `HEAD`, for monitors configured that way) runs on every request and
+really touches the app's one hard dependency: a single `select 1` through the same
+Postgres pool the app itself uses. That one query proves env config, DNS, TLS, credentials
+and the pool are all working. There is no cached layer in front of it: the route is
+`force-dynamic` with `revalidate = 0` and answers with
+`Cache-Control: no-store, no-cache, must-revalidate, max-age=0`.
+
+Healthy, `200`:
+
+```json
+{
+  "ok": true,
+  "service": "witus-triage-agent",
+  "checks": { "database": "ok" },
+  "time": "2026-07-31T16:10:04.579Z"
+}
+```
+
+Unhealthy, `503`, always this exact body whatever went wrong:
+
+```json
+{ "ok": false, "error": "dependency_unavailable" }
+```
+
+Alert on any non-200, or on `ok !== true`.
+
+The endpoint is public and unauthenticated, so it is written to give away nothing:
+
+- **The raw error never escapes.** The `catch` has no binding at all, so there is no error
+  object in scope to serialize. A connection-string password, an internal hostname or an
+  env-validation message cannot reach the body, and the log line records the fixed code
+  `dependency_unavailable`, never `err.message`.
+- **No submission data, ever.** Not a row, not a field, and no count of runs, submissions
+  or waitlist entries. This app processes other apps' submissions (submitter emails,
+  names, free-text payloads), and a number that implies volume is itself a leak.
+- **No provider or configuration detail.** The success body is a fixed shape with no
+  env-derived value in it.
+- **It calls no LLM provider and no third-party API.** A vendor outage must not redden the
+  monitor, provider SDK errors routinely carry the API key in their message, and a probe
+  that costs money every minute is a probe you turn off.
+- **It cannot hang.** The database probe is capped at a 4 second timeout, and a config
+  problem (a missing or malformed `STORAGE_DATABASE_URL`) returns the same honest 503
+  rather than a 500, because `db/client` is imported dynamically inside the try block.
 
 ---
 
