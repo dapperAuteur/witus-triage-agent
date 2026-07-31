@@ -179,6 +179,7 @@ small screens.
 | Database | Postgres / Neon, via Drizzle ORM on `node-postgres` |
 | Auth | NextAuth v4 (magic-link, single-operator) · deny + waitlist for non-operators |
 | Observability | LangSmith — optional, fail-soft |
+| Error monitoring | Better Stack via the `@sentry/nextjs` SDK (optional, inert without a DSN) |
 | UI | Tailwind v4, hand-rolled components in the WitUS Inbox identity |
 | Testing | Vitest |
 
@@ -221,7 +222,9 @@ db/
                     waitlist, auth tables
   migrations/
 lib/                env · auth · session · hmac · sms · langsmith · triage-runner ·
-                    settings · waitlist · inbox-sender
+                    settings · waitlist · inbox-sender · sentry-scrub
+instrumentation.ts  Next runtime hook: error-monitoring init + onRequestError
+sentry.*.config.ts  Server / edge error-monitoring init (inert without a DSN)
 docs/
   STYLEGUIDE.md     Code + style guide
   operator-guide/   Plain-language guide for non-developer operators
@@ -244,10 +247,42 @@ LANGSMITH_API_KEY=                # optional — tracing is fail-soft
 NEXTAUTH_SECRET=                  # operator dashboard
 ADMIN_EMAIL=                      # the one operator allowed to sign in
 TRIAGE_INGEST_SECRET=             # HMAC secret for the /api/triage/start webhook
+SENTRY_DSN=                       # optional: Better Stack error monitoring (server)
+NEXT_PUBLIC_SENTRY_DSN=           # optional: the same DSN, browser side
 ```
 
 LangSmith is on by default but the app runs fine with `LANGSMITH_API_KEY` unset —
 failures are soft, a console warning rather than a crash.
+
+### Error monitoring
+
+Crashes can be reported to **Better Stack**, which ingests the standard
+`@sentry/nextjs` SDK (so the env vars say `SENTRY_*` while the DSN points at Better
+Stack, and switching vendors is a DSN change with no code change). It is **inert
+until a DSN is set**: with `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` unset, `init()`
+never runs, nothing is collected, and nothing is sent.
+
+Because this app triages **other people's** submissions and holds seven providers'
+LLM keys, the `beforeSend` scrub in [`lib/sentry-scrub.ts`](lib/sentry-scrub.ts) is
+deliberately aggressive:
+
+- the **request body is dropped in full**, because it is a member of the public's message,
+  and it is never what tells you why the code threw;
+- **provider keys are redacted by shape as well as by label** (`sk-`, `sk-ant-`,
+  `csk-`, `AIza`, `lsv2_`, `Bearer`, JWTs, connection-string credentials), because a
+  failing provider SDK often puts an unlabelled key straight into its error message;
+- cookies, auth headers and the HMAC signature headers are removed, `query_string`
+  is scrubbed separately from `url`, and the whole query is dropped for
+  `/api/auth/**` (magic-link tokens live there);
+- breadcrumbs, `extra`, `tags`, `contexts` and stack-frame locals are walked
+  **key-aware**, so an object whose inner field names we cannot predict is still
+  protected. `contexts.trace` is left alone so events still correlate.
+
+Run-ids, route paths, status codes and provider names all survive: the scrub is
+guarded in both directions by `__tests__/lib/sentry-scrub.test.ts` (redaction **and**
+counter-assertions against over-redaction), plus an inertness test.
+Errors are tagged `triage.surface` = `webhook` | `api` | `ui`, because a machine-to-machine
+webhook failure has nobody watching a screen.
 
 ---
 
