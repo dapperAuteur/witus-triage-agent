@@ -9,7 +9,7 @@ state** when the process restarts under the default in-memory checkpointer, then
 swap in `PostgresSaver` and watch the **exact same thread resume across a real
 process restart**. Four lessons, one notebook, one `docker compose up`.
 
-This is a **Quickstart**: a tour of *one* product surface — LangGraph's
+This is a **Quickstart**: a tour of *one* product surface: LangGraph's
 `PostgresSaver` checkpointer paired with `interrupt()`. It is action-first. Every
 lesson ends with the surface visibly doing something.
 
@@ -20,8 +20,8 @@ lesson ends with the surface visibly doing something.
 This list is load-bearing. A Quickstart earns its length by what it refuses to
 teach. We are **not** covering:
 
-- **A TypeScript track.** Python only. The LangGraph TS API has the same shape —
-  the `witus-triage-agent` repo this course lives in *is* the TS version — so you
+- **A TypeScript track.** Python only. The LangGraph TS API has the same shape
+  (the `witus-triage-agent` repo this course lives in *is* the TS version), so you
   can transfer the pattern yourself.
 - **Alternative checkpointers** (SQLite, Redis, in-memory persistence, custom
   `BaseCheckpointSaver`). Postgres only.
@@ -37,9 +37,9 @@ teach. We are **not** covering:
 - **An observability essay.** Lesson 4 is "find the run, see it's continuous,"
   not a tracing tutorial (`docs/lessons/04-observability.md` is the essay).
 - **Cloud-hosted Postgres / production hardening.** Local `docker-compose` only.
-- **The reflection-loop pattern** — that is the Foundation course
+- **The reflection-loop pattern**: that is the Foundation course
   (`wanderlearn-field-reporter`).
-- **The per-agent RAG pattern** — that is the Project course
+- **The per-agent RAG pattern**: that is the Project course
   (`centenarian-coach-multiagent`).
 
 If you want any of those, the pointer is right there. This course is *only*
@@ -49,17 +49,17 @@ durability.
 
 ## What you'll build
 
-A four-node triage graph — `intake → propose → human_approval → finalize` — a
+A four-node triage graph (`intake → propose → human_approval → finalize`), a
 deliberately minimal version of the production
 [WitUS Triage Agent](../../../agent/graph.ts) that ships in this repo. The
 `human_approval` node calls `interrupt()`. You will prove that:
 
 1. Under `MemorySaver`, a worker restart **destroys** the paused thread.
-2. Under `PostgresSaver`, a worker restart **preserves** it — a brand-new process
+2. Under `PostgresSaver`, a worker restart **preserves** it: a brand-new process
    resumes the exact thread by id.
 3. The whole episode shows up as **one continuous trace** in LangSmith.
 
-The graph uses **deterministic nodes — no LLM call**. Durability is a property of
+The graph uses **deterministic nodes (no LLM call)**. Durability is a property of
 the *checkpointer*, not the model, so an API key would only add friction. Adding a
 real model node is a one-liner; see [`migration-checklist.md`](./migration-checklist.md).
 
@@ -72,8 +72,8 @@ top to bottom.
 
 | Lesson | ~Time | The surface does something |
 |:--|:--:|:--|
-| **1. The crash test** | 5 min | Run the HITL agent with `MemorySaver`, pause on `interrupt()`, kill the process, try to resume in a fresh process — **the state is gone.** |
-| **2. Swap to the Postgres checkpointer** | 10 min | `docker compose up -d`, swap `MemorySaver → PostgresSaver` (≈10 lines), rerun the same crash test — **the fresh process resumes the thread.** |
+| **1. The crash test** | 5 min | Run the HITL agent with `MemorySaver`, pause on `interrupt()`, kill the process, try to resume in a fresh process: **the state is gone.** |
+| **2. Swap to the Postgres checkpointer** | 10 min | `docker compose up -d`, swap `MemorySaver → PostgresSaver` (≈10 lines), rerun the same crash test: **the fresh process resumes the thread.** |
 | **3. Durable interrupt patterns** | 10 min | *What* lives in the checkpointer vs in memory; why an `interrupt()` node must re-run from its first line and stay idempotent; the real rule taken from the triage codebase. |
 | **4. Verify in LangSmith** | 5 min | Find the interrupted thread, confirm the resume is stitched into **one continuous trace** across the crash. |
 
@@ -84,19 +84,19 @@ split further.
 ### Optional / bonus steps
 
 The core crash-test → fix → verify path runs with just Python + Postgres. Three
-steps are **optional** — tagged inline in the notebook as "(Optional — bonus
+steps are **optional**, tagged inline in the notebook as "(Optional — bonus
 footage)" and filmed as bonus footage in [`video/video-script.md`](./video/video-script.md) §6:
 
 1. **LangSmith verification (Lesson 4).** Needs a `LANGSMITH_API_KEY`; skips
    automatically without one. To do it: set the key in `.env` and rerun Lesson 2.
 2. **Peek at the checkpoint rows in Postgres (Lesson 2).** A "see the proof"
-   `SELECT` — satisfying, not required.
+   `SELECT`: satisfying, not required.
 3. **Swap in a real LLM node (end-of-notebook bonus).** Ships **commented out**
    with instructions, so the core demo needs no model API key.
 
 ---
 
-## Setup (do this first — the surface responds in Lesson 1)
+## Setup (do this first; the surface responds in Lesson 1)
 
 ```bash
 # 1. Python deps (3.11+). A virtualenv is recommended.
@@ -112,16 +112,16 @@ jupyter notebook durable-hitl-quickstart.ipynb
 ```
 
 You need **Python 3.11+** and **a local Postgres**. You do **not** need an LLM
-API key. LangSmith is optional — the notebook runs without it; Lesson 4 is the
+API key. LangSmith is optional: the notebook runs without it; Lesson 4 is the
 only part that uses it, and it fails soft if the key is missing.
 
 ### Pick a Postgres (no Docker Desktop required)
 
-The notebook only cares about the `DB_URI` connection string — *anything* serving
+The notebook only cares about the `DB_URI` connection string: *anything* serving
 Postgres at that URI works. Docker Desktop dropped support for older macOS, so
 here are three Docker-Desktop-free paths:
 
-**Option A — Docker engine via Colima** (keeps the `docker compose` flow as-is;
+**Option A: Docker engine via Colima** (keeps the `docker compose` flow as-is;
 good on macOS where Docker Desktop is unsupported):
 ```bash
 brew install colima docker docker-compose
@@ -130,7 +130,7 @@ docker compose up -d --wait          # uses this dir's docker-compose.yml
 # (if `docker compose` isn't found, use the hyphenated `docker-compose up -d`)
 ```
 
-**Option B — Postgres.app** (native macOS, zero containers, least friction):
+**Option B: Postgres.app** (native macOS, zero containers, least friction):
 1. Download from https://postgresapp.com, move to Applications, click **Initialize**.
 2. Skip the compose step. Set this in `.env`:
    ```bash
@@ -139,7 +139,7 @@ docker compose up -d --wait          # uses this dir's docker-compose.yml
 The notebook's `make_checkpointer("postgres")` runs `setup()` and creates the
 checkpoint tables in that database for you.
 
-**Option C — Homebrew Postgres**:
+**Option C: Homebrew Postgres**:
 ```bash
 brew install postgresql@16 && brew services start postgresql@16
 # then set DB_URI in .env as in Option B
@@ -147,14 +147,14 @@ brew install postgresql@16 && brew services start postgresql@16
 
 Default credentials in `.env.example` (`postgres:postgres@localhost:5432`) match
 Option A's `docker-compose.yml`. For Options B and C, override `DB_URI` in `.env`
-as shown — those serve Postgres under your macOS username with trust auth on
+as shown: those serve Postgres under your macOS username with trust auth on
 localhost, so no password is needed.
 
 ### Forking this into your own repo
 
 Everything in this directory is self-contained and MIT-licensed. Copy the four
-files — the notebook, `docker-compose.yml`, `requirements.txt`, and
-[`migration-checklist.md`](./migration-checklist.md) — into your own project and
+files (the notebook, `docker-compose.yml`, `requirements.txt`, and
+[`migration-checklist.md`](./migration-checklist.md)) into your own project and
 you have a working durable-HITL starter. The migration checklist walks you
 through pointing it at your own agent.
 
@@ -162,11 +162,11 @@ through pointing it at your own agent.
 
 ## Attribution
 
-The notebook scaffold — the cell structure, the `requirements.txt` shape, and the
-"find your run in LangSmith" pattern used in Lesson 4 — is **derived from
+The notebook scaffold (the cell structure, the `requirements.txt` shape, and the
+"find your run in LangSmith" pattern used in Lesson 4) is **derived from
 `langchain-ai/intro-to-langsmith` (MIT)** (LangChain, n.d.-a). Everything
-else — the crash test, the `PostgresSaver` + `docker-compose` swap, the durable
-interrupt-patterns lesson, and the migration checklist — is original to this
+else (the crash test, the `PostgresSaver` + `docker-compose` swap, the durable
+interrupt-patterns lesson, and the migration checklist) is original to this
 course.
 
 This Quickstart is course #2 of 3 in a LangChain Academy portfolio. Siblings:

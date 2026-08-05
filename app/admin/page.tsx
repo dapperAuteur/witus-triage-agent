@@ -30,7 +30,7 @@ export default async function AdminPage() {
       </h1>
       <p className="mt-1 text-sm text-slate-500">
         Choose the LLM provider and the model for each graph node. Changes
-        apply to the next triage run — no redeploy.
+        apply to the next triage run, no redeploy needed.
       </p>
       <div className="mt-6 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
         <SettingsForm

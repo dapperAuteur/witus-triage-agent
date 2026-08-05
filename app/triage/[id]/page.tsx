@@ -214,7 +214,7 @@ export default async function TriageRunPage({
               <p>
                 Execution: {run.execution.result}
                 {run.execution.errorMessage
-                  ? ` — ${run.execution.errorMessage}`
+                  ? `: ${run.execution.errorMessage}`
                   : ""}
               </p>
             )}

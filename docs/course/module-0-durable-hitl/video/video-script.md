@@ -1,4 +1,4 @@
-# Video script & production guide — *Quickstart: Durable HITL Interrupts with Postgres Checkpointer*
+# Video script & production guide for *Quickstart: Durable HITL Interrupts with Postgres Checkpointer*
 
 **Format (per PRD §4.2):** voice-led screencast of the notebook, bookended by a
 30-second on-camera intro and a 30-second on-camera outro. **No** per-module
@@ -11,7 +11,7 @@ markers, hosted on the course's video host with the embed dropped into the
 
 > ⚠️ **STOP gate (PRD §11 / kickoff):** the recording stack is set up but **no
 > recording happens until BAM approves.** Hardware/host purchases are operator
-> tasks — see `plans/user-tasks/` (`10` recording stack, `11` video host,
+> tasks. See `plans/user-tasks/` (`10` recording stack, `11` video host,
 > `12` Postgres demo env). This document is the script + plan to approve.
 
 Document order, per request: **(1) Production specs → (2) Pre-production →
@@ -24,12 +24,12 @@ recording descriptions (LAST).**
 
 | Spec | Value |
 |---|---|
-| Edited runtime | ~10:00 (hard cap 11:00 — Quickstart discipline) |
+| Edited runtime | ~10:00 (hard cap 11:00, Quickstart discipline) |
 | Aspect / resolution | 16:9, 1920×1080 @ 30fps (export 720p fallback) |
 | Screen capture | 2560×1440 logical canvas, captured region cropped to the notebook column |
 | Audio | Mono voice, −16 LUFS integrated, −1 dBTP ceiling, noise-gated |
 | On-camera | 30s intro + 30s outro only; webcam 1080p, eye-level, soft key light |
-| Brand | WitUS Inbox **violet-on-slate** identity — lower-thirds + end card per `docs/STYLEGUIDE.md`. Logo variant `04-orbit-type`. |
+| Brand | WitUS Inbox **violet-on-slate** identity: lower-thirds + end card per `docs/STYLEGUIDE.md`. Logo variant `04-orbit-type`. |
 | Captions | Burned-in OFF; sidecar `.srt` ON (accessibility) |
 | Chapters | 4 (one per lesson) + intro + outro |
 
@@ -38,12 +38,12 @@ recording descriptions (LAST).**
 ## 2. Pre-production
 
 ### 2.1 Recording stack (set up, then PAUSE for approval)
-- **Screen + audio capture:** OBS Studio (free) *or* ScreenFlow (paid, Mac) —
+- **Screen + audio capture:** OBS Studio (free) *or* ScreenFlow (paid, Mac);
   see operator task `10`. OBS recommended for the cross-platform crash-test
   demo; ScreenFlow if BAM wants a faster edit timeline.
 - **Mic:** any cardioid USB condenser (operator task `10` lists options).
 - **Webcam:** built-in 1080p is fine for the 30s bookends.
-- **Editor:** DaVinci Resolve (free) — chapters, captions, end card.
+- **Editor:** DaVinci Resolve (free): chapters, captions, end card.
 
 ### 2.2 Environment prep (the demo must be deterministic)
 - [ ] Clean Python 3.11 venv: `pip install -r requirements.txt`.
@@ -61,7 +61,7 @@ recording descriptions (LAST).**
 
 ### 2.3 Script discipline
 - Narration is **action-first**: say what we're about to make the surface do, do
-  it, name the result. No motivation essays, no "why HITL matters" — the crash
+  it, name the result. No motivation essays, no "why HITL matters": the crash
   *is* the motivation.
 - Every lesson's voiceover restates the scope cut in one breath ("we're not
   covering X here").
@@ -75,7 +75,7 @@ Timecodes are the **edited** cut. `[V]` = voiceover, `[CAM]` = on-camera,
 
 ---
 
-### 0:00–0:30 — On-camera INTRO  `[CAM]`
+### 0:00–0:30 · On-camera INTRO  `[CAM]`
 *Lower-third (violet-on-slate): "Durable HITL Interrupts · LangGraph + Postgres".*
 
 > "Your human-in-the-loop agent pauses for approval, the worker restarts — and
@@ -89,7 +89,7 @@ is NOT: no TypeScript, no alt checkpointers, no eval, no auth — durability onl
 
 ---
 
-### 0:30–2:30 — Lesson 1: The crash test  `[V]` + `[SCR]`  *(Chapter: "The crash test")*
+### 0:30–2:30 · Lesson 1: The crash test  `[V]` + `[SCR]`  *(Chapter: "The crash test")*
 
 > "One surface this whole course — LangGraph's interrupt paired with the Postgres
 > checkpointer. Lesson 1, we're not covering *why* you'd use human-in-the-loop;
@@ -117,7 +117,7 @@ is NOT: no TypeScript, no alt checkpointers, no eval, no auth — durability onl
 
 ---
 
-### 2:30–5:30 — Lesson 2: Swap to the Postgres checkpointer  `[V]` + `[SCR]`  *(Chapter: "The 10-line fix")*
+### 2:30–5:30 · Lesson 2: Swap to the Postgres checkpointer  `[V]` + `[SCR]`  *(Chapter: "The 10-line fix")*
 
 > "Lesson 2 — and we're staying local: docker-compose Postgres, no cloud, no
 > production hardening. The *only* thing changing is the checkpointer."
@@ -144,7 +144,7 @@ is NOT: no TypeScript, no alt checkpointers, no eval, no auth — durability onl
 
 ---
 
-### 5:30–8:00 — Lesson 3: Durable interrupt patterns  `[V]` + `[SCR]`  *(Chapter: "Two rules")*
+### 5:30–8:00 · Lesson 3: Durable interrupt patterns  `[V]` + `[SCR]`  *(Chapter: "Two rules")*
 
 > "Lesson 3 — two rules that decide whether *your* interrupt survives. Not a
 > tools tour, not state-design theory — just the durability contract."
@@ -170,7 +170,7 @@ is NOT: no TypeScript, no alt checkpointers, no eval, no auth — durability onl
 
 ---
 
-### 8:00–9:30 — Lesson 4: Verify in LangSmith  `[V]` + `[SCR]`  *(Chapter: "See it in the trace")*
+### 8:00–9:30 · Lesson 4: Verify in LangSmith  `[V]` + `[SCR]`  *(Chapter: "See it in the trace")*
 
 > "Last lesson — see the survival in the trace. Not a tracing tutorial, not eval;
 > just find the runs and confirm the resume continued the same thread."
@@ -188,7 +188,7 @@ is NOT: no TypeScript, no alt checkpointers, no eval, no auth — durability onl
 
 ---
 
-### 9:30–10:00 — On-camera OUTRO  `[CAM]`
+### 9:30–10:00 · On-camera OUTRO  `[CAM]`
 *End card (violet-on-slate): repo URL + "migration-checklist.md" + the three
 sibling course names.*
 
@@ -201,7 +201,7 @@ sibling course names.*
 ## 4. Post-production
 
 - **Cut:** trim dead air between cell runs to ~0.5s; keep the *full* pause on the
-  "STATE LOST" and "resumed across the crash" outputs (1.5–2s hold each — those
+  "STATE LOST" and "resumed across the crash" outputs (1.5–2s hold each; those
   two beats are the whole course).
 - **Zoom/pan:** punch-in on (a) the `interrupt()` line, (b) the 6-line Postgres
   swap, (c) "STATE LOST", (d) "resumed across the crash", (e) the `humanApproval.ts`
@@ -229,7 +229,7 @@ highlight ON. Each shot below is one continuous capture; edit points are in §4.
 ### SR-0 · Setup state (pre-roll, not in final cut)
 - Browser full-screen, notebook open at the title cell, kernel freshly
   restarted, `docker compose` freshly `down -v && up`. Confirm the title cell's
-  scope-NOT list is visible. *Not narrated — used only to verify a clean start.*
+  scope-NOT list is visible. *Not narrated; used only to verify a clean start.*
 
 ### SR-1 · Lesson 1, the graph (0:30–1:15)
 - **On screen:** the `%%writefile triage_graph.py` cell.
@@ -263,7 +263,7 @@ highlight ON. Each shot below is one continuous capture; edit points are in §4.
 - **Hold:** freeze 2s on the green **"OK resumed across the crash → EXECUTED:
   …"** line. Punch-in 1.5×.
 
-### SR-6 · Lesson 2, proof in the DB (4:40–5:30)  ☆ BONUS (optional — see §6)
+### SR-6 · Lesson 2, proof in the DB (4:40–5:30)  ☆ BONUS (optional, see §6)
 - **On screen:** the `SELECT thread_id, count(*) FROM checkpoints` cell output.
 - **Action:** run it; the `durable-demo-1` row with its checkpoint count appears.
   Cursor-underline the `durable-demo-1` row.
@@ -285,22 +285,22 @@ highlight ON. Each shot below is one continuous capture; edit points are in §4.
 - **Action:** scroll so the full blockquote is centered; cursor-trace the
   "no DB writes, no non-idempotent work before the interrupt" line.
 
-### SR-10 · Lesson 4, find the run (8:00–8:40)  ☆ BONUS (optional — see §6)
+### SR-10 · Lesson 4, find the run (8:00–8:40)  ☆ BONUS (optional, see §6)
 - **On screen:** the LangSmith "find your run" cell output (the printed run list
   with `thread=` + URLs).
 - **Action:** run it; hover a `durable-demo-1` run URL, click it (opens browser
   tab).
 
-### SR-11 · Lesson 4, the trace UI (8:40–9:30)  ★ payoff · ☆ BONUS (optional — see §6)
+### SR-11 · Lesson 4, the trace UI (8:40–9:30)  ★ payoff · ☆ BONUS (optional, see §6)
 - **On screen:** LangSmith project view in the browser.
 - **Action:** type `durable-demo-1` into the thread/metadata filter; open the
   **resumed** run; expand the run tree to show `human_approval → finalize` (NOT
   starting at `intake`). Cursor-circle the entry node.
 - **Note:** if the live UI differs at record time, capture whatever shows the two
-  runs sharing the thread and the resume starting mid-graph — that's the claim.
+  runs sharing the thread and the resume starting mid-graph: that's the claim.
 
 ### SR-12 · Outro end card (9:30–10:00)
-- Not a screen recording — DaVinci end card (violet-on-slate) with the repo URL,
+- Not a screen recording: DaVinci end card (violet-on-slate) with the repo URL,
   `migration-checklist.md`, and the three sibling course names. Hold to 10:00.
 
 ---
@@ -316,9 +316,9 @@ single take yields both the core cut and the bonus reel.
 
 | Bonus shot | Covers notebook optional step | Drop it if… | If kept, where it slots |
 |---|---|---|---|
-| **SR-6** — checkpoint rows in Postgres | #2 "peek at the checkpoint rows" | runtime is tight | extends Lesson 2 by ~30s after the durable rerun |
-| **SR-10 + SR-11** — LangSmith find-the-run + trace UI | #1 "LangSmith verification (Lesson 4)" | no `LANGSMITH_API_KEY` configured | the whole of Lesson 4 (8:00–9:30) |
-| **NEW: SR-13** — real-LLM swap | #3 "swap in a real LLM node" | no model API key, or runtime is tight | a 30–45s tag after Lesson 3, before the outro |
+| **SR-6**: checkpoint rows in Postgres | #2 "peek at the checkpoint rows" | runtime is tight | extends Lesson 2 by ~30s after the durable rerun |
+| **SR-10 + SR-11**: LangSmith find-the-run + trace UI | #1 "LangSmith verification (Lesson 4)" | no `LANGSMITH_API_KEY` configured | the whole of Lesson 4 (8:00–9:30) |
+| **NEW: SR-13** (real-LLM swap) | #3 "swap in a real LLM node" | no model API key, or runtime is tight | a 30–45s tag after Lesson 3, before the outro |
 
 ### SR-13 · Bonus, the real-LLM swap (optional, ~40s)
 - **On screen:** the end-of-notebook **commented-out** "OPTIONAL / BONUS STEP #3"
@@ -330,7 +330,7 @@ single take yields both the core cut and the bonus reel.
 - **Voiceover (bonus):** "Durability never cared about the model — here's a real
   Claude node writing the proposal, and the exact same crash test still resumes
   it. The checkpointer doesn't know or care that a model is in the loop."
-- **Note:** if you don't enable it, just narrate over the commented cell — the
+- **Note:** if you don't enable it, just narrate over the commented cell: the
   point (durability is model-independent) lands either way.
 
 **Editing the bonus reel:** keep the core 10-min cut as `…_v1.mp4`. Assemble the
@@ -345,4 +345,4 @@ any kept bonus segment: "Bonus · checkpoint rows", "Bonus · real-LLM swap"
 violet-on-slate identity and logo variant `04-orbit-type` per
 [`docs/STYLEGUIDE.md`](../../../STYLEGUIDE.md). If a Rise Wellness callout
 appears anywhere in the end card, the disclaimer text is **byte-identical** to
-the brand package — never paraphrased.
+the brand package, never paraphrased.

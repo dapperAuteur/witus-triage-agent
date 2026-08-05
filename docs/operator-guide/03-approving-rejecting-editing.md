@@ -1,6 +1,6 @@
 # Approving, rejecting, editing
 
-On a **pending** run you have three choices. Whatever you pick, *your* decision is final —
+On a **pending** run you have three choices. Whatever you pick, *your* decision is final:
 the agent never acts on its own.
 
 ## Approve
@@ -10,8 +10,8 @@ sent). The run moves to **Executed**.
 
 ## Edit
 
-You agree with the *direction* but want to change the details first — tweak a draft reply,
-adjust the payload — then approve. Use this when the proposal is close but not quite right.
+You agree with the *direction* but want to change the details first (tweak a draft reply,
+adjust the payload), then approve. Use this when the proposal is close but not quite right.
 
 ## Reject
 
@@ -25,9 +25,9 @@ point of the tool: the agent removes the busywork, you keep the judgment.
 
 ## On your phone
 
-The Approve / Reject buttons are large, thumb-friendly tap targets — the queue is designed
+The Approve / Reject buttons are large, thumb-friendly tap targets: the queue is designed
 to be swept from a phone.
 
 ## Next
 
-- **[Categories & actions](04-categories-and-actions.md)** — what each label means.
+- **[Categories & actions](04-categories-and-actions.md)**: what each label means.

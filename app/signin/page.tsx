@@ -30,7 +30,7 @@ export default async function SignInPage() {
         Sign in to the Triage Agent
       </h1>
       <p className="mt-2 mb-6 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-        This dashboard is private — only the operator can sign in. Enter your
+        This dashboard is private: only the operator can sign in. Enter your
         email; we&apos;ll either send a one-time sign-in link, or invite you to
         the waitlist for when this opens up.
       </p>

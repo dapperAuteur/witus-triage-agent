@@ -99,7 +99,7 @@ export async function runDraftReply({
     const message = err instanceof Error ? err.message : "unknown error";
     return {
       draft:
-        "(Automated draft generation failed — please write this reply manually.)",
+        "(Automated draft generation failed. Please write this reply manually.)",
       citations: [`draft_reply error: ${message}`],
     };
   }

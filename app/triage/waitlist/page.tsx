@@ -36,7 +36,7 @@ export default async function WaitlistPage() {
         Manage in WitUS Inbox →<span className="sr-only"> (opens in new tab)</span>
       </a>
       <p className="mt-2 text-xs text-slate-500">
-        Every signup is also a submission in the central Inbox — reply and
+        Every signup is also a submission in the central Inbox. Reply and
         archive there.
       </p>
 
