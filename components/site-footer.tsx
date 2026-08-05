@@ -99,7 +99,7 @@ export function SiteFooter() {
                   Rise Wellness
                   <span className="sr-only">
                     {" "}
-                    (mental-health partner — opens in new tab)
+                    (mental-health partner, opens in new tab)
                   </span>
                 </a>
                 <p className="text-xs leading-tight text-slate-400">
@@ -137,7 +137,7 @@ export function SiteFooter() {
 
         <div className="mt-8 border-t border-slate-100 pt-6 text-center text-xs text-slate-500 dark:border-slate-800/60">
           <p>
-            © {year} B4C LLC — A{" "}
+            © {year} B4C LLC, an{" "}
             <a
               href="https://awesomewebstore.com"
               target="_blank"

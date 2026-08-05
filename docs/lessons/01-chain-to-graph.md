@@ -1,13 +1,13 @@
-# Lesson 1 — From a chain to a graph
+# Lesson 1 · From a chain to a graph
 
 LangChain teaches you to build *chains*: a prompt feeds a model, the model feeds a
 parser, the parser feeds the next prompt. Chains are linear, and for a surprising number
-of tasks that is enough. This lesson is about the moment a chain stops being enough — and
+of tasks that is enough. This lesson is about the moment a chain stops being enough, and
 how to recognize it *before* you have wedged branching logic into a pipeline that was
 never meant to branch.
 
 We will use the WitUS Triage Agent as the worked example. Its job: take a support
-submission, classify it, gather context, propose an action, and — crucially — stop and
+submission, classify it, gather context, propose an action, and, crucially, stop and
 wait for a human before doing anything irreversible.
 
 ## The chain version
@@ -34,7 +34,7 @@ in the linear model.
 
 **1. A later step depends on several earlier ones.** The `propose` step needs the
 classification *and* the enrichment *and* the original submission. In a chain you thread
-this through by making each step return an ever-larger object — the output of step *n*
+this through by making each step return an ever-larger object: the output of step *n*
 becomes a bag holding everything steps *1..n* produced. The bag grows. Nothing tells you
 what is in it. This is the first smell.
 
@@ -45,9 +45,9 @@ it has no notion of "run this step OR that step." You can fake it with an `if` i
 step, but now a single step secretly contains two unrelated behaviors, and the shape of
 the program no longer matches the shape of the work.
 
-**3. A step needs to pause — for minutes, hours, or days.** The human-approval gate is
+**3. A step needs to pause, for minutes, hours, or days.** The human-approval gate is
 not a function call that returns quickly. The graph must stop, persist everything it
-knows, hand control back to a web request, and resume later — possibly in a different
+knows, hand control back to a web request, and resume later, possibly in a different
 process. A chain has no pause. `invoke()` runs start to finish. There is no seam to stop
 at and nothing to resume.
 
@@ -57,8 +57,8 @@ built for state machines.
 
 ## The graph version
 
-A graph keeps the model calls you already wrote — `classify` is still one structured
-model call — but changes what *surrounds* them. Three new ideas replace the three cracks
+A graph keeps the model calls you already wrote (`classify` is still one structured
+model call) but changes what *surrounds* them. Three new ideas replace the three cracks
 above.
 
 **State replaces the growing bag.** Instead of each step returning a bigger object, every
@@ -67,7 +67,7 @@ that is `TriageState` (see [`agent/state.ts`](../../agent/state.ts)). A node rec
 whole state and returns only the fields it changed; LangGraph merges the update. Lesson 2
 is entirely about designing this object well.
 
-**Edges replace the implicit order.** The graph wiring lives in one readable place —
+**Edges replace the implicit order.** The graph wiring lives in one readable place,
 [`agent/graph.ts`](../../agent/graph.ts):
 
 ```ts
@@ -91,11 +91,11 @@ new StateGraph(TriageStateAnnotation)
 ```
 
 The `addConditionalEdges` line is decision #2 made explicit. `routeAfterApproval` is a
-pure function — it looks at `state.approval.decision` and returns the name of the next
+pure function: it looks at `state.approval.decision` and returns the name of the next
 node. The branching is no longer hidden inside a step; it is a labelled fork in the
 diagram, and the diagram *is* the code.
 
-**Interrupts replace the impossible pause.** Decision #3 — pausing for a human — is what
+**Interrupts replace the impossible pause.** Decision #3, pausing for a human, is what
 LangGraph calls a human-in-the-loop interrupt (LangChain, n.d.-b). The `human_approval`
 node calls `interrupt()`, which suspends the graph. A checkpointer persists the suspended
 state to Postgres. A later HTTP request resumes the exact same run. Lesson 3 covers the
@@ -110,12 +110,12 @@ Before every project, ask the three questions this lesson is built around:
 2. Does the program need to choose between alternative steps at runtime?
 3. Does the program need to pause and resume across process boundaries?
 
-If the answer to all three is *no*, write a chain — it will be shorter and clearer. The
+If the answer to all three is *no*, write a chain: it will be shorter and clearer. The
 moment the answer to even one is *yes*, the graph is not over-engineering; it is the
 honest shape of the problem. The WitUS Triage Agent answers *yes* to all three, which is
 why it is a graph.
 
-The next lesson takes the first new idea — shared state — and shows how to design it so
+The next lesson takes the first new idea, shared state, and shows how to design it so
 it stays an asset instead of becoming the growing bag in a new disguise.
 
 ## References

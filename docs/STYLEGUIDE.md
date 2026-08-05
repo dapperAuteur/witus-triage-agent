@@ -1,4 +1,4 @@
-# WitUS Triage Agent — Code & Style Guide
+# WitUS Triage Agent: Code & Style Guide
 
 The single reference for how code is written and how the UI looks in this repo. Read it
 before adding a node, a tool, an API route, or a component. It resolves the WitUS
@@ -8,7 +8,7 @@ ecosystem branding (`gemini/witus/public/brand/`) into concrete tokens for this 
 
 ## 1. Product identity
 
-The triage agent follows the **WitUS Inbox** visual identity — it is the Inbox's sibling
+The triage agent follows the **WitUS Inbox** visual identity: it is the Inbox's sibling
 infrastructure. Inbox's identity in the ecosystem brand package is **violet accent on
 slate, light + dark**, logo variant `04-orbit-type`.
 
@@ -22,7 +22,7 @@ slate, light + dark**, logo variant `04-orbit-type`.
 | Text muted | `slate-500` / `slate-400` | metadata, captions, eyebrows |
 | Font | Geist Sans (variable, from `next/font`) | everything; `font-mono` Geist Mono for IDs/JSON |
 
-Status colors (used on badges — run status, classification category, product health):
+Status colors (used on badges: run status, classification category, product health):
 
 | Meaning | Token |
 |---|---|
@@ -33,7 +33,7 @@ Status colors (used on badges — run status, classification category, product h
 | accent / agent-authored | `violet` |
 
 Dark theme is the default (`color-scheme: dark`, body `#020617`) to match `gemini/witus`
-and `witus-inbox`. Every color must work in both themes — pair `light` and `dark:` tokens.
+and `witus-inbox`. Every color must work in both themes: pair `light` and `dark:` tokens.
 
 ---
 
@@ -44,7 +44,7 @@ and `witus-inbox`. Every color must work in both themes — pair `light` and `da
 - Author every layout for the smallest screen first, then add `sm:` / `md:` / `lg:`
   enhancements. Never the reverse.
 - Tap targets ≥ 44×44px (`min-h-11` or padding equivalent). The Approve/Reject buttons
-  especially — BAM sweeps the queue from a phone.
+  especially: BAM sweeps the queue from a phone.
 - One-column by default; multi-column only behind a breakpoint.
 - No fixed widths; use `max-w-*` + fluid.
 
@@ -54,7 +54,7 @@ and `witus-inbox`. Every color must work in both themes — pair `light` and `da
   Reach for ARIA attributes only when no native element fits.
 - Every interactive element has a visible focus ring:
   `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500`.
-- Color is never the only signal — pair every status color with text or an icon.
+- Color is never the only signal. Pair every status color with text or an icon.
 - All form inputs have an associated `<label>`; errors use `role="alert"`.
 - Contrast meets WCAG 2.1 AA (4.5:1 body text, 3:1 large text / UI).
 - Respect `prefers-reduced-motion` (already handled globally in `globals.css`).
@@ -66,11 +66,11 @@ and `witus-inbox`. Every color must work in both themes — pair `light` and `da
 - The app ships a service worker + web app manifest (`public/manifest.webmanifest`).
   The app shell, static assets, and the last-viewed `/triage` queue are cached so the
   operator can open the dashboard with no connection.
-- Mutations (approve / reject) require connectivity — when offline, the UI disables those
-  controls and shows an explicit "offline — reconnect to act" notice rather than failing
+- Mutations (approve / reject) require connectivity: when offline, the UI disables those
+  controls and shows an explicit "offline, reconnect to act" notice rather than failing
   silently. Never queue an approval offline; the approval gate must be deliberate.
 - Data fetching degrades gracefully: a cached read is clearly labelled as cached.
-- `next/font` (Geist) is self-hosted — no runtime font fetch.
+- `next/font` (Geist) is self-hosted: no runtime font fetch.
 
 > Shipped: the service worker (`public/sw.js`, registered by
 > `components/service-worker-register.tsx`) and the manifest (`public/manifest.webmanifest`)
@@ -82,7 +82,7 @@ and `witus-inbox`. Every color must work in both themes — pair `light` and `da
 
 ### TypeScript
 
-- `strict` is on. **No `any` in agent code** (`agent/**`) — ever. Elsewhere, `unknown` +
+- `strict` is on. **No `any` in agent code** (`agent/**`), ever. Elsewhere, `unknown` +
   a narrowing guard instead of `any`.
 - Prefer `type` aliases; derive types from Zod schemas with `z.infer<typeof Schema>` so a
   runtime schema and its compile-time type cannot drift.
@@ -96,7 +96,7 @@ and `witus-inbox`. Every color must work in both themes — pair `light` and `da
   `execute` and `log_rejection` nodes.
 - **Every tool** is a `tool()` wrapper with a **Zod input schema**. No bare functions
   passed as tools.
-- The `human_approval` node body is minimal — `interrupt()` then return — because the
+- The `human_approval` node body is minimal (`interrupt()` then return) because the
   node re-runs from its first line when the graph resumes.
 - Audit-log rows are written from API routes after `invoke()` resolves, not from inside
   nodes (keeps nodes pure).
@@ -106,13 +106,13 @@ and `witus-inbox`. Every color must work in both themes — pair `light` and `da
 ### Server boundaries
 
 - DB client, env, auth, and anything touching secrets import `"server-only"` at the top.
-- `getEnv()` is lazy — called inside a request handler / server function, never at module
+- `getEnv()` is lazy: called inside a request handler / server function, never at module
   top level (mirrors `witus-inbox/lib/env.ts`).
 - LangSmith is fail-soft: the app runs with `LANGSMITH_API_KEY` unset.
 
 ### Files & naming
 
-- Root-level `app/`, `agent/`, `db/`, `lib/`, `scripts/`, `docs/`, `__tests__/` — no
+- Root-level `app/`, `agent/`, `db/`, `lib/`, `scripts/`, `docs/`, `__tests__/`: no
   `src/` (matches `witus-inbox`).
 - Files: `kebab-case.ts` for libs/routes, `camelCase.ts` for agent nodes/tools (the node
   name is the export), `PascalCase.tsx` for components.
@@ -122,7 +122,7 @@ and `witus-inbox`. Every color must work in both themes — pair `light` and `da
 
 - Comment the *why*, not the *what*. Match the surrounding density.
 - Code-level docs (this file, README, lesson code blocks) are exempt from the APA
-  citation rule; the `docs/lessons/` prose is **not** — see `CLAUDE.md`.
+  citation rule; the `docs/lessons/` prose is **not** (see `CLAUDE.md`).
 
 ---
 
@@ -138,10 +138,10 @@ and `witus-inbox`. Every color must work in both themes — pair `light` and `da
 - Badges encode status with both color and label (see §1 status colors).
 - The ecosystem footer (three-column nav + verbatim Rise Wellness callout + B4C
   copyright) is implemented per `gemini/witus/public/brand/footer-recipe.md` with the
-  violet swap. The Rise Wellness non-affiliation disclaimer is **byte-identical** — never
+  violet swap. The Rise Wellness non-affiliation disclaimer is **byte-identical**: never
   paraphrased.
 - **The menu (`SiteHeader`) and the ecosystem footer (`SiteFooter`) render on every page**,
-  once, from the root layout (`app/layout.tsx`) — never per-route. `SiteHeader` is
+  once, from the root layout (`app/layout.tsx`), never per-route. `SiteHeader` is
   **auth-aware** (it reads the operator session): a signed-out visitor gets a minimal nav
   (Help, Sign in); the operator gets the full dashboard nav. The nav collapses to a
   hamburger below `sm` (`components/header-nav.tsx`, the only client part).

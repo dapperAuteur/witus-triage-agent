@@ -182,8 +182,8 @@ export function SettingsForm({
       >
         <strong>{PROVIDER_LABELS[provider]}</strong>{" "}
         {activeCostClass === "paid"
-          ? "— billed per token. A paid provider is active."
-          : "— $0 in the normal case (rate-limited free tier or local)."}
+          ? "is billed per token. A paid provider is active."
+          : "costs $0 in the normal case (rate-limited free tier or local)."}
       </div>
 
       {/* Provider */}

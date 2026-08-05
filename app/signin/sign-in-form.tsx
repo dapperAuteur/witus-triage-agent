@@ -113,7 +113,7 @@ export function SignInForm() {
         role="status"
         className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300"
       >
-        Check your inbox — a one-time sign-in link is on its way.
+        Check your inbox: a one-time sign-in link is on its way.
       </p>
     );
   }
@@ -125,7 +125,7 @@ export function SignInForm() {
           <p>
             This app is private right now, and{" "}
             <span className="font-mono text-xs">{state.email}</span> isn&apos;t
-            an authorized address — you can&apos;t use it yet.
+            an authorized address, so you can&apos;t use it yet.
           </p>
           <p className="mt-2">
             Want to be notified when the Triage Agent becomes available?

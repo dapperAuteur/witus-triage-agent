@@ -14,7 +14,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Help · WitUS Triage Agent",
   description:
-    "How to use the WitUS Triage Agent — the queue, reading a run, approving and rejecting, and what the classifications mean. Written for operators, no coding required.",
+    "How to use the WitUS Triage Agent: the queue, reading a run, approving and rejecting, and what the classifications mean. Written for operators, no coding required.",
 };
 
 const SECTIONS: { id: string; label: string }[] = [
@@ -51,7 +51,7 @@ const CATEGORIES: { name: string; blurb: string }[] = [
     name: "abuse",
     blurb: "Harassment, threats, or misuse that needs a careful human eye.",
   },
-  { name: "spam", blurb: "Junk — no real person waiting on a reply." },
+  { name: "spam", blurb: "Junk: no real person waiting on a reply." },
   {
     name: "other",
     blurb: "Doesn't fit the buckets above, or the agent wasn't confident.",
@@ -69,7 +69,7 @@ const ACTIONS: { name: string; blurb: string }[] = [
   },
   {
     name: "escalate_sms",
-    blurb: "Text the operator — this one is urgent and shouldn't wait.",
+    blurb: "Text the operator: this one is urgent and shouldn't wait.",
   },
   {
     name: "file_in_kb",
@@ -78,7 +78,7 @@ const ACTIONS: { name: string; blurb: string }[] = [
   { name: "mark_spam", blurb: "Flag as spam and close it out." },
   {
     name: "no_action",
-    blurb: "Nothing to do — acknowledge and move on.",
+    blurb: "Nothing to do: acknowledge and move on.",
   },
 ];
 
@@ -98,7 +98,7 @@ export default function HelpPage() {
       </h1>
       <p className="mt-3 max-w-prose leading-7 text-slate-600 dark:text-slate-400">
         A plain-language guide to running the queue. No coding or admin setup
-        required — if you can sign in, you can use everything here. Looking for
+        required. If you can sign in, you can use everything here. Looking for
         the engineering docs instead? See the{" "}
         <a
           href="https://github.com/dapperAuteur/witus-triage-agent#readme"
@@ -178,7 +178,7 @@ export default function HelpPage() {
               the sign-in page
             </Link>{" "}
             and enter your email. If you&apos;re the operator, you&apos;ll get a
-            one-time sign-in link by email — no password to remember. If
+            one-time sign-in link by email, no password to remember. If
             you&apos;re not the operator yet, you&apos;ll be invited to join the
             waitlist instead. There&apos;s nothing to install.
           </p>
@@ -210,20 +210,17 @@ export default function HelpPage() {
             <li>
               <strong className="font-medium text-amber-600 dark:text-amber-400">
                 Pending approval
-              </strong>{" "}
-              — waiting on you.
+              </strong>: waiting on you.
             </li>
             <li>
               <strong className="font-medium text-emerald-600 dark:text-emerald-400">
                 Executed
-              </strong>{" "}
-              — you approved it and the action ran.
+              </strong>: you approved it and the action ran.
             </li>
             <li>
               <strong className="font-medium text-red-600 dark:text-red-400">
                 Rejected / Failed
-              </strong>{" "}
-              — you declined it, or the action hit an error.
+              </strong>: you declined it, or the action hit an error.
             </li>
           </ul>
           <p className={body}>
@@ -243,28 +240,24 @@ export default function HelpPage() {
             <li>
               <strong className="font-medium text-slate-900 dark:text-slate-100">
                 Classification
-              </strong>{" "}
-              — the category, a confidence score (0–100%), and a one-line reason.
+              </strong>: the category, a confidence score (0–100%), and a one-line reason.
             </li>
             <li>
               <strong className="font-medium text-slate-900 dark:text-slate-100">
                 Context (enrichment)
-              </strong>{" "}
-              — past messages from the same person, the product&apos;s current
+              </strong>: past messages from the same person, the product&apos;s current
               health (green / yellow / red), and whether they&apos;re new,
               returning, or long-time.
             </li>
             <li>
               <strong className="font-medium text-slate-900 dark:text-slate-100">
                 Proposed action
-              </strong>{" "}
-              — what the agent suggests doing, and why.
+              </strong>: what the agent suggests doing, and why.
             </li>
             <li>
               <strong className="font-medium text-slate-900 dark:text-slate-100">
                 Audit trail
-              </strong>{" "}
-              — a time-stamped log of everything that happened, plus a link to
+              </strong>: a time-stamped log of everything that happened, plus a link to
               the full technical trace if you ever need it.
             </li>
           </ul>
@@ -281,21 +274,18 @@ export default function HelpPage() {
             <li>
               <strong className="font-medium text-emerald-600 dark:text-emerald-400">
                 Approve
-              </strong>{" "}
-              — you agree with the proposed action; it runs.
+              </strong>: you agree with the proposed action; it runs.
             </li>
             <li>
               <strong className="font-medium text-violet-600 dark:text-violet-400">
                 Edit
-              </strong>{" "}
-              — approve, but change the details first (for example, tweak a draft
+              </strong>: approve, but change the details first (for example, tweak a draft
               reply before it sends).
             </li>
             <li>
               <strong className="font-medium text-red-600 dark:text-red-400">
                 Reject
-              </strong>{" "}
-              — decline. Add a short note so the reason is on the record. Nothing
+              </strong>: decline. Add a short note so the reason is on the record. Nothing
               is sent.
             </li>
           </ul>
@@ -365,8 +355,8 @@ export default function HelpPage() {
           <p className={body}>
             The app keeps a copy of itself on your device, so you can open the
             dashboard and review the last queue you loaded even with no
-            connection. Making a decision (approve / reject) needs to be online —
-            that&apos;s deliberate, so an approval is never sent by accident. If
+            connection. Making a decision (approve / reject) needs to be online.
+            That&apos;s deliberate, so an approval is never sent by accident. If
             you&apos;re offline, those buttons are disabled with a clear notice.
           </p>
         </section>
@@ -381,7 +371,7 @@ export default function HelpPage() {
                 A run says it failed. What now?
               </dt>
               <dd className={body}>
-                Open the run and check the audit trail — it records the error.
+                Open the run and check the audit trail: it records the error.
                 Most failures are temporary (a service was briefly down); the
                 message stays on record so nothing is lost.
               </dd>
@@ -391,7 +381,7 @@ export default function HelpPage() {
                 The agent picked the wrong category.
               </dt>
               <dd className={body}>
-                Use <em>Edit</em> or <em>Reject</em> — your decision always wins.
+                Use <em>Edit</em> or <em>Reject</em>: your decision always wins.
                 The agent only proposes; it never acts on its own.
               </dd>
             </div>

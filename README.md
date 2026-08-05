@@ -21,9 +21,9 @@ WitUS Inbox collects form submissions from across a small ecosystem of products 
 table. Reading every webhook by hand does not scale. This repo is the LangGraph agent
 that triages that traffic: typed graph state, schema-validated tools, and a
 human-in-the-loop interrupt that **pauses the graph** until an operator approves. It is
-production code with a real database, real auth, and real failure handling — not a demo.
+production code with a real database, real auth, and real failure handling, not a demo.
 
-It also runs on **two LLM providers from one codebase** — Gemini 2.5 Flash for
+It also runs on **two LLM providers from one codebase**: Gemini 2.5 Flash for
 development and CI, Claude Sonnet 4.6 for production. The provider is selected by
 environment, and an admin dashboard at `/admin` picks the model **per graph node**, so
 the same agent can be tested cheaply and tuned without a redeploy.
@@ -36,10 +36,10 @@ patterns this repo demonstrates.
 ## The problem
 
 WitUS Inbox is a small internal tool that ingests signed webhooks from every product in
-the WitUS ecosystem — CentenarianOS, FlashLearnAI, Wanderlearn, Fly.WitUS, Work.WitUS,
-Tour Manager OS, witus.online — and lands them in one canonical `submission` table.
+the WitUS ecosystem (CentenarianOS, FlashLearnAI, Wanderlearn, Fly.WitUS, Work.WitUS,
+Tour Manager OS, witus.online) and lands them in one canonical `submission` table.
 
-Without an agent, every submission — the obvious ones included — costs human attention.
+Without an agent, every submission, the obvious ones included, costs human attention.
 Most are resolvable in two clicks; a few are urgent; the rest are pattern-matchable
 noise. This agent sits between the webhook and the human. It does the read-and-propose.
 The human keeps the decision.
@@ -72,7 +72,7 @@ This repo demonstrates three LangGraph patterns; each has a companion lesson.
 
 ### 1. Typed graph state
 
-Every node reads and writes one `TriageState` object — the contract between nodes. Each
+Every node reads and writes one `TriageState` object, the contract between nodes. Each
 field is owned by exactly one producing node and is optional until that node runs.
 
 ```ts
@@ -90,7 +90,7 @@ Full state: [`agent/state.ts`](agent/state.ts) · Schemas: [`agent/schemas.ts`](
 
 ### 2. Schema-validated tools
 
-Each of the five tools is a `tool()` wrapper with a Zod input schema — the same schema
+Each of the five tools is a `tool()` wrapper with a Zod input schema: the same schema
 documents the inputs, validates them, and (when bound to a model) becomes the JSON schema
 the model sees.
 
@@ -108,7 +108,7 @@ All five tools: [`agent/tools/`](agent/tools/)
 
 The graph pauses at `human_approval` via a real LangGraph `interrupt()`. A Postgres
 checkpointer persists the paused run, so the pause survives across HTTP requests and
-process restarts — the approval arrives on a *separate* request and resumes the exact
+process restarts. The approval arrives on a *separate* request and resumes the exact
 same graph thread with `new Command({ resume })`. Execution is unreachable except through
 an approval. This is the pattern most agent demos skip and production systems need.
 
@@ -119,7 +119,7 @@ Nodes: [`agent/nodes/`](agent/nodes/) · Checkpointer: [`agent/checkpointer.ts`]
 ## Quick start
 
 You need **Node 20+** and a **Postgres 16** database (local, or Neon's free tier). This
-repo owns its own database — it does not connect to the live WitUS Inbox DB.
+repo owns its own database. It does not connect to the live WitUS Inbox DB.
 
 ```bash
 # 1. Install
@@ -146,19 +146,19 @@ npm run dev          # http://localhost:3000
 ```
 
 `npm test` exercises the graph end to end (skipping live-LLM tests when no key is set).
-The PRD's target is clone-to-running in under 15 minutes — if it is slower for you, that
+The PRD's target is clone-to-running in under 15 minutes. If it is slower for you, that
 is a real bug worth an issue.
 
 ---
 
 ## For operators (no code required)
 
-If you just need to *use* the dashboard — review the queue, approve or reject — start with
+If you just need to *use* the dashboard (review the queue, approve or reject), start with
 the **operator guide**, written in plain language with no setup steps:
 
 - In the running app: **[`/help`](http://localhost:3000/help)** (linked from the menu and
   footer; reachable without signing in).
-- As markdown: **[`docs/operator-guide/`](docs/operator-guide/README.md)** — getting
+- As markdown: **[`docs/operator-guide/`](docs/operator-guide/README.md)**: getting
   started, the queue, reading a run, approving/rejecting, what the categories mean, and an
   FAQ.
 
@@ -175,10 +175,10 @@ small screens.
 | Runtime | Node.js 20+, Next.js 16 (app router, root layout) |
 | Language | TypeScript strict |
 | Agent | `@langchain/langgraph` 1.x + `@langchain/langgraph-checkpoint-postgres` |
-| LLM | `@langchain/google-genai` (Gemini 2.5 Flash — testing) · `@langchain/anthropic` (Claude Sonnet 4.6 — production) |
+| LLM | `@langchain/google-genai` (Gemini 2.5 Flash, testing) · `@langchain/anthropic` (Claude Sonnet 4.6, production) |
 | Database | Postgres / Neon, via Drizzle ORM on `node-postgres` |
 | Auth | NextAuth v4 (magic-link, single-operator) · deny + waitlist for non-operators |
-| Observability | LangSmith — optional, fail-soft |
+| Observability | LangSmith (optional, fail-soft) |
 | Error monitoring | Better Stack via the `@sentry/nextjs` SDK (optional, inert without a DSN) |
 | UI | Tailwind v4, hand-rolled components in the WitUS Inbox identity |
 | Testing | Vitest |
@@ -190,7 +190,7 @@ The LLM provider is auto-detected from the keys present, or forced with
 
 ## Curriculum
 
-A 4-lesson, code-along walkthrough — every snippet links to the file it came from:
+A 4-lesson, code-along walkthrough (every snippet links to the file it came from):
 
 1. [From a chain to a graph](docs/lessons/01-chain-to-graph.md)
 2. [Designing agent state](docs/lessons/02-agent-state.md)
@@ -252,7 +252,7 @@ SENTRY_DSN=                       # optional: Better Stack error monitoring (ser
 NEXT_PUBLIC_SENTRY_DSN=           # optional: the same DSN, browser side
 ```
 
-LangSmith is on by default but the app runs fine with `LANGSMITH_API_KEY` unset —
+LangSmith is on by default but the app runs fine with `LANGSMITH_API_KEY` unset:
 failures are soft, a console warning rather than a crash.
 
 ### Error monitoring
@@ -346,7 +346,7 @@ npm run eval      # classification accuracy on the 25-fixture set -> EVAL.md
 
 `npm run eval` runs the classifier against all 25 hand-labeled fixtures and writes
 [`EVAL.md`](EVAL.md). The PRD's acceptance bar is ≥ 80% accuracy; the current measured
-result is **100% (25/25)** on Claude Sonnet 4.6. The eval is hardened — an infrastructure
+result is **100% (25/25)** on Claude Sonnet 4.6. The eval is hardened: an infrastructure
 failure (an exhausted quota, a bad key) aborts loudly instead of being scored as a wrong
 answer, so the number is never a false negative.
 [`__tests__/agent/graph.test.ts`](__tests__/agent/graph.test.ts) proves the approval
@@ -356,12 +356,12 @@ gate: the graph pauses with no execution, and only a resume produces one.
 
 ## A real bug, found in a trace
 
-Early on, every classification came back `category: "other"`, `confidence: 0` — and the
+Early on, every classification came back `category: "other"`, `confidence: 0`, and the
 runs did not error, so the test suite stayed green. The `classify` node is fail-soft: on
 an LLM error it returns an `"other"` fallback so one bad input cannot crash the graph.
 That safety net was silently catching *every* call.
 
-The LangSmith trace made it obvious: the model-call span carried the real error —
+The LangSmith trace made it obvious: the model-call span carried the real error,
 *"Your credit balance is too low to access the Anthropic API."* Not a code bug; an
 unfunded key. But the point stands: the failure was invisible to assertions on the output
 and visible in the trace. [Lesson 4](docs/lessons/04-observability.md) walks through it.
@@ -381,7 +381,7 @@ state, tools, or the interrupt, the four lessons are how I would have wanted to 
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Fork it, ship it, teach from it. Attribution appreciated,
+MIT. See [LICENSE](LICENSE). Fork it, ship it, teach from it. Attribution appreciated,
 not required.
 
-Part of the WitUS ecosystem — © B4C LLC, an AwesomeWebStore.com brand.
+Part of the WitUS ecosystem, © B4C LLC, an AwesomeWebStore.com brand.

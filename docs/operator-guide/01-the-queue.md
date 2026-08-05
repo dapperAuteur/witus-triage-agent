@@ -11,7 +11,7 @@ badge.
 | **Pending approval** (amber) | Waiting on you. This is what fills the queue. |
 | **Executed** (emerald) | You approved it and the action ran. |
 | **Rejected** (red) | You declined it. Nothing was sent. |
-| **Failed** (red) | The action ran into an error — open it to see why. |
+| **Failed** (red) | The action ran into an error. Open it to see why. |
 
 Every badge pairs a color with a word, so you never have to rely on color alone.
 
@@ -23,9 +23,9 @@ what was done and why.
 
 ## On your phone
 
-The queue is built mobile-first — tap targets are large and the layout is one column on a
+The queue is built mobile-first: tap targets are large and the layout is one column on a
 phone. You can clear the queue from anywhere.
 
 ## Next
 
-- **[Reading a run](02-reading-a-run.md)** — tap a row to see the full picture.
+- **[Reading a run](02-reading-a-run.md)**: tap a row to see the full picture.

@@ -39,7 +39,7 @@ export default async function TriageQueuePage() {
       <div className="mt-6">
         <RunList
           runs={runs}
-          emptyMessage="The queue is clear — no runs are waiting for approval."
+          emptyMessage="The queue is clear. No runs are waiting for approval."
         />
       </div>
     </div>

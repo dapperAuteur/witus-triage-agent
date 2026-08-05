@@ -1,4 +1,4 @@
-# Lesson 3 — Tools and the human-in-the-loop interrupt
+# Lesson 3 · Tools and the human-in-the-loop interrupt
 
 This lesson covers the two ideas that make the WitUS Triage Agent more than a sequence of
 prompts: **tools** give the agent typed, deterministic access to the outside world, and
@@ -8,7 +8,7 @@ acting. Both lean on the state and schema discipline from Lesson 2.
 ## Tools are functions with a schema
 
 A tool, in LangGraph terms, is a function plus a description plus an input schema. The
-schema is not optional polish — it is the contract between the caller and the tool, the
+schema is not optional polish: it is the contract between the caller and the tool, the
 same way `TriageState` is the contract between nodes.
 
 Here is `searchPastSubmissions`, abridged from
@@ -29,16 +29,16 @@ export const searchPastSubmissions = tool(runSearchPastSubmissions, {
 ```
 
 The `tool()` wrapper takes the implementation and the metadata. The Zod schema does three
-jobs at once: it documents the inputs, it validates them at the boundary, and — if the
-tool is ever bound to a model for the model to call — it becomes the JSON schema the
+jobs at once: it documents the inputs, it validates them at the boundary, and, if the
+tool is ever bound to a model for the model to call, it becomes the JSON schema the
 model sees (LangChain, n.d.-a).
 
 A subtle but important choice in this project: the `enrich` node calls its tools
 **deterministically**, not by letting a model decide. `enrich` knows it always wants the
 contact's history and the product's status, so it just calls `searchPastSubmissions` and
 `getProductStatus` directly. Tools are often associated with "agentic" model-driven tool
-selection, but a tool is valuable on its own merits — a typed, validated, named unit of
-work — even when ordinary code decides to call it. Use model-driven tool calling when the
+selection, but a tool is valuable on its own merits (a typed, validated, named unit of
+work) even when ordinary code decides to call it. Use model-driven tool calling when the
 *choice* of tool is genuinely uncertain; use a deterministic call when it is not. The
 triage agent does both: `enrich` calls tools deterministically, while `propose` makes one
 model decision and then deterministically assembles the rest.
@@ -75,11 +75,11 @@ export function humanApproval(state: TriageState): TriageStateUpdate {
 }
 ```
 
-On the first run, `interrupt()` does not return — it throws a special signal that pauses
+On the first run, `interrupt()` does not return: it throws a special signal that pauses
 the graph. So how does the paused graph survive a process restart? That is the second
 part: the **checkpointer**. The graph is compiled with a `PostgresSaver`
-([`agent/checkpointer.ts`](../../agent/checkpointer.ts)), and at every step — including
-the moment it pauses — the checkpointer writes the full graph state to Postgres, keyed by
+([`agent/checkpointer.ts`](../../agent/checkpointer.ts)), and at every step, including
+the moment it pauses, the checkpointer writes the full graph state to Postgres, keyed by
 a `thread_id`.
 
 This project uses the triage run's database id as the `thread_id`. One run is one
@@ -89,7 +89,7 @@ arrives at `POST /api/triage/runs/:id/approve`, and the `:id` in the URL *is* th
 
 ## Resuming with `Command`
 
-To resume, you invoke the graph again — same `thread_id` — but instead of fresh input you
+To resume, you invoke the graph again (same `thread_id`) but instead of fresh input you
 pass a `Command` carrying the resume value:
 
 ```ts
@@ -100,14 +100,14 @@ await graph.invoke(
 ```
 
 Now the magic: LangGraph loads the checkpoint, re-enters `human_approval`, and *this
-time* `interrupt()` returns — it returns exactly the object inside `Command({ resume })`.
+time* `interrupt()` returns: it returns exactly the object inside `Command({ resume })`.
 The node finishes, the conditional edge routes to `execute` or `log_rejection`, and the
 graph runs to the end.
 
 ## The gotcha: the node re-runs
 
 Read the previous paragraph carefully. On resume, LangGraph re-enters `human_approval`
-and runs it *from its first line*. The node executes twice across the run's lifetime —
+and runs it *from its first line*. The node executes twice across the run's lifetime:
 once up to the `interrupt()` (which pauses it), and once more on resume (which completes
 it).
 
@@ -115,8 +115,8 @@ This is why Lesson 2 insisted nodes be pure, and why `human_approval` is only tw
 statements long. If that node did a database write or sent a notification *before* the
 `interrupt()` call, that side effect would fire twice. The rule that falls out of this:
 **a node containing `interrupt()` must do nothing but call `interrupt()` and shape the
-result.** All real work happens in the nodes after the interrupt — `execute` and
-`log_rejection` — which run exactly once.
+result.** All real work happens in the nodes after the interrupt (`execute` and
+`log_rejection`), which run exactly once.
 
 ## The gate, stated precisely
 
@@ -126,7 +126,7 @@ Put together, the interrupt gives a guarantee you can describe in one sentence: 
 external action. There is no edge into `execute` that bypasses the human. The
 [`graph.test.ts`](../../__tests__/agent/graph.test.ts) suite asserts exactly this: after
 the first `invoke()` the run is paused with no `execution`; only after a resume does
-`execution` appear. The approval gate is not a convention or a code review rule — it is
+`execution` appear. The approval gate is not a convention or a code review rule: it is
 the topology of the graph.
 
 Lesson 4 turns to the question every one of these lessons has quietly raised: when a run
