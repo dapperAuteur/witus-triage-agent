@@ -2,11 +2,18 @@ import * as Sentry from "@sentry/nextjs";
 import type { Instrumentation } from "next";
 
 /**
- * Next.js instrumentation hook. Loads the right Sentry (Better Stack) config per runtime and
- * reports server side App Router errors through `onRequestError`. Everything below is inert
- * without a `SENTRY_DSN`, because the configs guard on it.
+ * Next.js instrumentation hook. Registers Honeycomb OpenTelemetry tracing first, then loads the
+ * right Sentry (Better Stack) config per runtime and reports server side App Router errors through
+ * `onRequestError`. Everything below is inert without its env var — the Sentry configs guard on
+ * `SENTRY_DSN`, the OTel config on the Honeycomb key.
  */
 export async function register() {
+  // OTel first: it must own the global tracer provider before Sentry loads (Sentry is told to skip
+  // its own OTel setup — see skipOpenTelemetrySetup in sentry.server.config.ts). Inert without the
+  // Honeycomb key.
+  const { registerHoneycombOtel } = await import("./otel.config");
+  registerHoneycombOtel();
+
   if (process.env.NEXT_RUNTIME === "nodejs") await import("./sentry.server.config");
   if (process.env.NEXT_RUNTIME === "edge") await import("./sentry.edge.config");
 }
