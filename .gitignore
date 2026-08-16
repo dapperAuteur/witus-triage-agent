@@ -56,3 +56,7 @@ docs/lessons/04-observability.pdf
 docs/lessons/README.pdf
 
 docs/STYLEGUIDE.pdf
+
+# Playwright output
+test-results/
+playwright-report/
