@@ -33,8 +33,18 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
-a {
-  color: inherit;
+/*
+ * Links inherit the surrounding text color by default. This MUST live in the
+ * base layer: an unlayered rule outranks every Tailwind utility (utilities
+ * are emitted in @layer utilities, and unlayered CSS beats all layers), which
+ * silently killed `text-white` on the violet CTA buttons — the anchor
+ * inherited the page foreground (#0f172a) on bg-violet-600 for a 3.0:1
+ * contrast. In @layer base, utilities win again: white on violet-600 = 5.9:1.
+ */
+@layer base {
+  a {
+    color: inherit;
+  }
 }
 
 /* Respect users who reduce motion (accessibility — STYLEGUIDE §2). */

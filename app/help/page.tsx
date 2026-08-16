@@ -208,12 +208,12 @@ export default function HelpPage() {
           </p>
           <ul className="mt-3 space-y-1 text-sm text-slate-600 dark:text-slate-400">
             <li>
-              <strong className="font-medium text-amber-600 dark:text-amber-400">
+              <strong className="font-medium text-amber-700 dark:text-amber-400">
                 Pending approval
               </strong>: waiting on you.
             </li>
             <li>
-              <strong className="font-medium text-emerald-600 dark:text-emerald-400">
+              <strong className="font-medium text-emerald-700 dark:text-emerald-400">
                 Executed
               </strong>: you approved it and the action ran.
             </li>
@@ -272,7 +272,7 @@ export default function HelpPage() {
           </p>
           <ul className="mt-3 space-y-2 text-slate-600 dark:text-slate-400">
             <li>
-              <strong className="font-medium text-emerald-600 dark:text-emerald-400">
+              <strong className="font-medium text-emerald-700 dark:text-emerald-400">
                 Approve
               </strong>: you agree with the proposed action; it runs.
             </li>
