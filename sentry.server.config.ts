@@ -18,6 +18,11 @@ if (dsn) {
     environment: process.env.SENTRY_ENVIRONMENT ?? process.env.VERCEL_ENV ?? process.env.NODE_ENV,
     // Errors only. No tracing spend, and no traces of an LLM agent's inputs, until BAM opts in.
     tracesSampleRate: 0,
+    // Tracing belongs to @vercel/otel → Honeycomb (otel.config.ts). Sentry v8+ installs its own
+    // OpenTelemetry provider by default even at tracesSampleRate 0; two global providers race and
+    // the loser silently drops its spans. Error capture does not need a provider, so skipping
+    // Sentry's OTel setup costs nothing here. Same posture as gemini/witus.
+    skipOpenTelemetrySetup: true,
     // Never auto attach IP, cookies or user email. `beforeSend` is the second line of defence.
     sendDefaultPii: false,
     beforeSend: scrubEvent,

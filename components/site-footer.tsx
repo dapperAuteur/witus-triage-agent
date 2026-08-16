@@ -102,7 +102,7 @@ export function SiteFooter() {
                     (mental-health partner, opens in new tab)
                   </span>
                 </a>
-                <p className="text-xs leading-tight text-slate-400">
+                <p className="text-xs leading-tight text-slate-600 dark:text-slate-400">
                   Mental-health partner
                 </p>
               </li>

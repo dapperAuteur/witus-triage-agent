@@ -70,6 +70,26 @@ const EnvSchema = z.object({
   SENTRY_ORG: z.string().min(1).optional(),
   SENTRY_PROJECT: z.string().min(1).optional(),
 
+  /**
+   * Honeycomb distributed tracing (OpenTelemetry via @vercel/otel — witus plan 30 §7).
+   * Entirely optional: with neither key set, `otel.config.ts` never registers a tracer
+   * provider and every span in the app is a no-op. Declared here for documentation and
+   * validation completeness only — `otel.config.ts` reads `process.env` DIRECTLY (it loads
+   * from `instrumentation.ts`, outside this module's `server-only` chain). The `_SECRET`
+   * feeds the `x-honeycomb-team` ingest header; `HONEYCOMB_API_KEY` is the fallback.
+   */
+  HONEYCOMB_INGEST_API_KEY_SECRET: z.string().min(1).optional(),
+  HONEYCOMB_API_KEY: z.string().min(1).optional(),
+
+  /**
+   * Better Stack heartbeat URL, pinged at the end of each SUCCESSFUL processing run
+   * (`lib/heartbeat.ts`); a missed ping is the dead-run alarm. Optional: unset means no
+   * ping, no error. Read from `process.env` directly by `lib/heartbeat.ts`; declared here
+   * for documentation + validation completeness. Not `.url()` on purpose — a malformed
+   * value should cost the ping, never a `getEnv()` throw.
+   */
+  BETTERSTACK_HEARTBEAT_URL: z.string().min(1).optional(),
+
   /** LangSmith tracing — entirely optional; the SDK no-ops without it. */
   LANGSMITH_API_KEY: z.string().min(1).optional(),
   LANGSMITH_PROJECT: z.string().min(1).optional(),
