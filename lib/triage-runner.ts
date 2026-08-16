@@ -7,6 +7,9 @@ import { getDb } from "@/db/client";
 import { submissions, triageRuns, triageAuditLog } from "@/db/schema";
 import type { TriageRun } from "@/db/schema";
 import { getCompiledTriageGraph } from "@/agent/graph";
+import { withTriageSpan, markSpanError } from "@/lib/otel-tracing";
+import { OtelLlmSpanHandler } from "@/lib/otel-llm-callback";
+import { pingRunHeartbeat } from "@/lib/heartbeat";
 import {
   ApprovalDecisionInputSchema,
   type ApprovalDecisionInput,
@@ -42,6 +45,15 @@ export const StartRunInputSchema = z.object({
   payload: z.record(z.string(), z.unknown()),
   priority: z.enum(["normal", "high"]).default("normal"),
   receivedAt: z.string().optional(),
+  /**
+   * W3C `traceparent` stored with the submission on the Inbox side and
+   * forwarded here, so the triage run's spans join the submission's original
+   * trace (witus plan 30 §7.2). Optional BY DESIGN: the Inbox-side branch may
+   * not have merged yet, and older submissions never carried it. Format is
+   * validated in lib/otel-tracing.ts, not here — a malformed value must
+   * degrade to a fresh trace, never reject the webhook.
+   */
+  traceparent: z.string().optional(),
 });
 export type StartRunInput = z.infer<typeof StartRunInputSchema>;
 
@@ -128,49 +140,92 @@ export async function startRun(input: StartRunInput): Promise<StartRunResult> {
     contactName: input.submitterName,
     priority: input.priority,
   };
-  const config = {
-    configurable: { thread_id: runId },
-    runId: langsmithRunId,
-  };
+  // The Inbox may also stash the traceparent inside the payload under an
+  // underscore key (underscore-prefixed keys are already treated as internal
+  // markers by flattenPayloadToBody). Fallback, tolerated but not required —
+  // the top-level field is the contract.
+  const payloadTraceparent = input.payload["_traceparent"];
+  const traceparent =
+    input.traceparent ??
+    (typeof payloadTraceparent === "string" ? payloadTraceparent : undefined);
 
-  try {
-    const graph = await getCompiledTriageGraph();
-    await graph.invoke({ rawSubmission }, config);
-    const state = (await graph.getState(config)).values as TriageState;
+  // Root span for the processing run. If the submission carries a stored
+  // traceparent, this span joins the Inbox's trace (one submission = one
+  // Honeycomb waterfall across services); otherwise it nests under this app's
+  // own request span / starts fresh. Ids and enums only — no submission
+  // content, per the PII rule in lib/otel-tracing.ts.
+  return withTriageSpan(
+    "triage.run",
+    {
+      traceparent,
+      attributes: {
+        "triage.run_id": runId,
+        "triage.submission_id": submissionId,
+        "triage.source": input.source,
+        "triage.form_type": input.formType,
+        "triage.priority": input.priority,
+      },
+    },
+    async (span) => {
+      const config = {
+        configurable: { thread_id: runId },
+        runId: langsmithRunId,
+        // Propagated to the model.invoke() calls inside graph nodes by
+        // @langchain/core's AsyncLocalStorage config propagation — one span
+        // per LLM/provider attempt, nested under this run span.
+        callbacks: [new OtelLlmSpanHandler(span)],
+      };
 
-    await db
-      .update(triageRuns)
-      .set({
-        status: "pending_approval",
-        classification: state.classification,
-        enrichment: state.enrichment,
-        proposedAction: state.proposedAction,
-        updatedAt: new Date(),
-      })
-      .where(eq(triageRuns.id, runId));
+      try {
+        const graph = await getCompiledTriageGraph();
+        await graph.invoke({ rawSubmission }, config);
+        const state = (await graph.getState(config)).values as TriageState;
 
-    if (state.classification) {
-      await writeAudit(runId, "classified", {
-        category: state.classification.category,
-      });
-    }
-    if (state.enrichment) await writeAudit(runId, "enriched");
-    if (state.proposedAction) {
-      await writeAudit(runId, "proposed", {
-        type: state.proposedAction.type,
-      });
-    }
+        await db
+          .update(triageRuns)
+          .set({
+            status: "pending_approval",
+            classification: state.classification,
+            enrichment: state.enrichment,
+            proposedAction: state.proposedAction,
+            updatedAt: new Date(),
+          })
+          .where(eq(triageRuns.id, runId));
 
-    return { runId, status: "pending_approval" };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "unknown error";
-    await db
-      .update(triageRuns)
-      .set({ status: "failed", updatedAt: new Date() })
-      .where(eq(triageRuns.id, runId));
-    await writeAudit(runId, "failed", { stage: "start", message });
-    return { runId, status: "failed" };
-  }
+        if (state.classification) {
+          await writeAudit(runId, "classified", {
+            category: state.classification.category,
+          });
+          span.setAttribute("triage.category", state.classification.category);
+        }
+        if (state.enrichment) await writeAudit(runId, "enriched");
+        if (state.proposedAction) {
+          await writeAudit(runId, "proposed", {
+            type: state.proposedAction.type,
+          });
+          span.setAttribute("triage.proposed_action", state.proposedAction.type);
+        }
+        span.setAttribute("triage.status", "pending_approval");
+
+        // Better Stack heartbeat — successful processing runs ONLY. A missed
+        // heartbeat is the dead-run alarm, so failure paths stay silent.
+        // Never throws; costs at most its short timeout (lib/heartbeat.ts).
+        await pingRunHeartbeat();
+
+        return { runId, status: "pending_approval" };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "unknown error";
+        await db
+          .update(triageRuns)
+          .set({ status: "failed", updatedAt: new Date() })
+          .where(eq(triageRuns.id, runId));
+        await writeAudit(runId, "failed", { stage: "start", message });
+        span.setAttribute("triage.status", "failed");
+        markSpanError(span, err);
+        return { runId, status: "failed" };
+      }
+    },
+  );
 }
 
 /** Resume a paused run with the operator's decision and run it to the end. */
@@ -201,47 +256,67 @@ export async function resumeRun(
     );
   }
 
-  const config = { configurable: { thread_id: runId } };
+  // Fresh trace by design: the operator decision lands hours after the start
+  // run, and an hours-long trace is useless in Honeycomb. The shared
+  // `triage.run_id` attribute is the join key back to the start-run trace.
+  return withTriageSpan(
+    "triage.resume",
+    {
+      attributes: {
+        "triage.run_id": runId,
+        "triage.decision": decision.decision,
+      },
+    },
+    async (span) => {
+      const config = {
+        configurable: { thread_id: runId },
+        callbacks: [new OtelLlmSpanHandler(span)],
+      };
 
-  try {
-    const graph = await getCompiledTriageGraph();
-    await graph.invoke(new Command({ resume: decision }), config);
-    const state = (await graph.getState(config)).values as TriageState;
+      try {
+        const graph = await getCompiledTriageGraph();
+        await graph.invoke(new Command({ resume: decision }), config);
+        const state = (await graph.getState(config)).values as TriageState;
 
-    const rejected = decision.decision === "rejected";
-    const failed = state.execution?.result === "failed";
-    const status: TriageRun["status"] = rejected
-      ? "rejected"
-      : failed
-        ? "failed"
-        : "executed";
+        const rejected = decision.decision === "rejected";
+        const failed = state.execution?.result === "failed";
+        const status: TriageRun["status"] = rejected
+          ? "rejected"
+          : failed
+            ? "failed"
+            : "executed";
 
-    const updated = await db
-      .update(triageRuns)
-      .set({
-        status,
-        approval: state.approval,
-        execution: state.execution,
-        updatedAt: new Date(),
-      })
-      .where(eq(triageRuns.id, runId))
-      .returning();
+        const updated = await db
+          .update(triageRuns)
+          .set({
+            status,
+            approval: state.approval,
+            execution: state.execution,
+            updatedAt: new Date(),
+          })
+          .where(eq(triageRuns.id, runId))
+          .returning();
 
-    await writeAudit(runId, rejected ? "rejected" : "executed", {
-      decision: decision.decision,
-      result: state.execution?.result,
-    });
-    return updated[0];
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "unknown error";
-    const updated = await db
-      .update(triageRuns)
-      .set({ status: "failed", updatedAt: new Date() })
-      .where(eq(triageRuns.id, runId))
-      .returning();
-    await writeAudit(runId, "failed", { stage: "resume", message });
-    return updated[0];
-  }
+        await writeAudit(runId, rejected ? "rejected" : "executed", {
+          decision: decision.decision,
+          result: state.execution?.result,
+        });
+        span.setAttribute("triage.status", status);
+        return updated[0];
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "unknown error";
+        const updated = await db
+          .update(triageRuns)
+          .set({ status: "failed", updatedAt: new Date() })
+          .where(eq(triageRuns.id, runId))
+          .returning();
+        await writeAudit(runId, "failed", { stage: "resume", message });
+        span.setAttribute("triage.status", "failed");
+        markSpanError(span, err);
+        return updated[0];
+      }
+    },
+  );
 }
 
 /** A typed error so routes can map to the right HTTP status. */

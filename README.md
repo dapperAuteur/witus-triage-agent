@@ -178,8 +178,8 @@ small screens.
 | LLM | `@langchain/google-genai` (Gemini 2.5 Flash, testing) · `@langchain/anthropic` (Claude Sonnet 4.6, production) |
 | Database | Postgres / Neon, via Drizzle ORM on `node-postgres` |
 | Auth | NextAuth v4 (magic-link, single-operator) · deny + waitlist for non-operators |
-| Observability | LangSmith (optional, fail-soft) |
-| Error monitoring | Better Stack via the `@sentry/nextjs` SDK (optional, inert without a DSN) |
+| Observability | LangSmith (optional, fail-soft) · Honeycomb via OpenTelemetry / `@vercel/otel` (optional, inert without a key) |
+| Error monitoring | Better Stack via the `@sentry/nextjs` SDK (optional, inert without a DSN) · Better Stack run heartbeat (optional, inert without a URL) |
 | UI | Tailwind v4, hand-rolled components in the WitUS Inbox identity |
 | Testing | Vitest |
 
@@ -250,10 +250,27 @@ ADMIN_EMAIL=                      # the one operator allowed to sign in
 TRIAGE_INGEST_SECRET=             # HMAC secret for the /api/triage/start webhook
 SENTRY_DSN=                       # optional: Better Stack error monitoring (server)
 NEXT_PUBLIC_SENTRY_DSN=           # optional: the same DSN, browser side
+HONEYCOMB_INGEST_API_KEY_SECRET=  # optional: Honeycomb distributed tracing
+BETTERSTACK_HEARTBEAT_URL=        # optional: run heartbeat (dead-run detection)
 ```
 
 LangSmith is on by default but the app runs fine with `LANGSMITH_API_KEY` unset:
 failures are soft, a console warning rather than a crash.
+
+### Distributed tracing (Honeycomb)
+
+OpenTelemetry tracing exports to **Honeycomb** via `@vercel/otel`
+([`otel.config.ts`](otel.config.ts)), inert unless `HONEYCOMB_INGEST_API_KEY_SECRET`
+(fallback `HONEYCOMB_API_KEY`) is set. Each triage run is a root span
+([`lib/otel-tracing.ts`](lib/otel-tracing.ts)); every LLM call inside the graph
+becomes a child span with model, provider, token counts and error class — never
+prompts, completions, or submission content
+([`lib/otel-llm-callback.ts`](lib/otel-llm-callback.ts)). When WitUS Inbox forwards
+a stored W3C `traceparent` with a submission, the run joins the submission's
+original cross-service trace; without one, the run starts its own. At the end of
+each **successful** processing run the agent pings a Better Stack heartbeat
+([`lib/heartbeat.ts`](lib/heartbeat.ts)) — a missed ping, not an error report, is
+the dead-run signal.
 
 ### Error monitoring
 
