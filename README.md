@@ -261,16 +261,25 @@ failures are soft, a console warning rather than a crash.
 
 OpenTelemetry tracing exports to **Honeycomb** via `@vercel/otel`
 ([`otel.config.ts`](otel.config.ts)), inert unless `HONEYCOMB_INGEST_API_KEY_SECRET`
-(fallback `HONEYCOMB_API_KEY`) is set. Each triage run is a root span
+(fallback `HONEYCOMB_API_KEY`) is set. Service name is `witus-triage-agent`. The
+config is registered from [`instrumentation.ts`](instrumentation.ts) **before** the
+Sentry configs load — whoever registers the global tracer provider first wins, and
+Sentry is told to stand down via `skipOpenTelemetrySetup` in
+`sentry.server.config.ts`. `/api/health` spans are dropped at the sampler, because
+uptime monitors probe that route around the clock and those requests must not spend
+Honeycomb's free-tier event budget.
+
+Each triage run is a root span
 ([`lib/otel-tracing.ts`](lib/otel-tracing.ts)); every LLM call inside the graph
 becomes a child span with model, provider, token counts and error class — never
 prompts, completions, or submission content
 ([`lib/otel-llm-callback.ts`](lib/otel-llm-callback.ts)). When WitUS Inbox forwards
 a stored W3C `traceparent` with a submission, the run joins the submission's
-original cross-service trace; without one, the run starts its own. At the end of
-each **successful** processing run the agent pings a Better Stack heartbeat
-([`lib/heartbeat.ts`](lib/heartbeat.ts)) — a missed ping, not an error report, is
-the dead-run signal.
+original cross-service trace — one waterfall from the original form submit, through
+the Inbox, to this agent's LLM calls; without one, the run starts its own. At the
+end of each **successful** processing run the agent pings a Better Stack heartbeat
+at `BETTERSTACK_HEARTBEAT_URL` ([`lib/heartbeat.ts`](lib/heartbeat.ts)), inert
+without the var — a missed ping, not an error report, is the dead-run signal.
 
 ### Error monitoring
 
@@ -368,6 +377,27 @@ failure (an exhausted quota, a bad key) aborts loudly instead of being scored as
 answer, so the number is never a false negative.
 [`__tests__/agent/graph.test.ts`](__tests__/agent/graph.test.ts) proves the approval
 gate: the graph pauses with no execution, and only a resume produces one.
+
+### E2E + accessibility CI
+
+Playwright specs live in [`e2e/`](e2e/); the gate runs in
+[`.github/workflows/e2e.yml`](.github/workflows/e2e.yml) on `deployment_status` — it
+tests the **real Vercel deployment URL** (preview → full suite, production →
+`@smoke` only), so CI needs no secrets, database, or env. The suite runs desktop
+plus a 360px mobile project, and every covered page must pass an axe check with
+**zero serious or critical WCAG A/AA violations** — the gate is strict on purpose;
+fix the page, not the gate.
+
+- Local runs: `PLAYWRIGHT_BASE_URL=<url> npx playwright test` (drives installed
+  Chrome via `channel: "chrome"`; Playwright's bundled chromium doesn't support
+  macOS 13).
+- If the Vercel project enables Deployment Protection, set the project's
+  "Protection Bypass for Automation" secret as the `VERCEL_AUTOMATION_BYPASS_SECRET`
+  Actions secret; public previews need nothing.
+- **Synthetic traffic is tagged, not hidden**: every request the suite makes carries
+  `x-witus-origin-test: playwright-synthetic`, which the OTel layer surfaces as the
+  `witus.origin_test` span attribute — Honeycomb queries (and logs/analytics) can
+  include or exclude test traffic. Absent header = attribute absent = real user.
 
 ---
 
