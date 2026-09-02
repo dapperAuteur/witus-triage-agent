@@ -5,7 +5,7 @@ import type { OAuthConfig } from "next-auth/providers/oauth";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { getDb } from "@/db/client";
 import { users, accounts, sessions, verificationTokens } from "@/db/schema";
-import { getEnv } from "@/lib/env";
+import { getEnv, WITUS_OIDC_DISCOVERY_FALLBACK } from "@/lib/env";
 
 /**
  * "Sign in with WitUS" — the ecosystem OIDC provider (accounts.witus.online).
@@ -26,9 +26,10 @@ function witusProvider(): OAuthConfig<WitusProfile> {
     id: "witus",
     name: "WitUS",
     type: "oauth",
-    wellKnown:
-      process.env.WITUS_OIDC_DISCOVERY_URL ??
-      "https://accounts.witus.online/api/idp/.well-known/openid-configuration",
+    // Same fallback the silent-SSO probe and the global sign-out URL derive
+    // from (`WITUS_OIDC_DISCOVERY_FALLBACK` in lib/env.ts). Shared so the check
+    // can never point at a different host than the click.
+    wellKnown: process.env.WITUS_OIDC_DISCOVERY_URL ?? WITUS_OIDC_DISCOVERY_FALLBACK,
     clientId: process.env.WITUS_OIDC_CLIENT_ID,
     clientSecret: process.env.WITUS_OIDC_CLIENT_SECRET,
     authorization: { params: { scope: "openid email profile" } },

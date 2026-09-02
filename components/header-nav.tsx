@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { SignOutButton } from "./sign-out-button";
 
 /**
  * Primary nav links. The set is auth-aware: a signed-out visitor sees only the
@@ -28,7 +29,17 @@ const navLink =
   "focus-visible:outline-violet-500 dark:text-slate-400 dark:hover:bg-slate-800 " +
   "dark:hover:text-slate-100";
 
-export function HeaderNav({ authenticated }: { authenticated: boolean }) {
+export function HeaderNav({
+  authenticated,
+  endSessionBase = null,
+}: {
+  authenticated: boolean;
+  /**
+   * IdP end-session URL for GLOBAL sign-out, resolved server-side in
+   * `SiteHeader`. Null keeps sign-out local to this app.
+   */
+  endSessionBase?: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const links = authenticated ? OPERATOR_LINKS : PUBLIC_LINKS;
 
@@ -43,6 +54,11 @@ export function HeaderNav({ authenticated }: { authenticated: boolean }) {
             </Link>
           </li>
         ))}
+        {authenticated && (
+          <li>
+            <SignOutButton endSessionBase={endSessionBase} className={navLink} />
+          </li>
+        )}
       </ul>
 
       {/* < sm : hamburger disclosure */}
@@ -89,6 +105,14 @@ export function HeaderNav({ authenticated }: { authenticated: boolean }) {
               </Link>
             </li>
           ))}
+          {authenticated && (
+            <li>
+              <SignOutButton
+                endSessionBase={endSessionBase}
+                className={`w-full text-left ${navLink}`}
+              />
+            </li>
+          )}
         </ul>
       )}
     </nav>

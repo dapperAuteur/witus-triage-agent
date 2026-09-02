@@ -10,9 +10,18 @@
  *
  * No Server Actions — this repo uses API routes (mirrors the rest of the app).
  */
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import {
+  SILENT_SSO_TIMEOUT_MS,
+  SSO_ATTEMPT_STORAGE_KEY,
+  continueAsLabel,
+  parseSilentSsoIdentity,
+  silentSsoDecision,
+  withAttemptMarker,
+  type SsoIdentity,
+} from "@/lib/silent-sso";
 
 type State =
   | { kind: "idle" }
@@ -31,10 +40,87 @@ const INPUT_CLASS =
 // WITUS_OIDC_CLIENT_ID that enables the provider itself. Set both together.
 const WITUS_SSO_ENABLED = Boolean(process.env.NEXT_PUBLIC_WITUS_SSO);
 
-export function SignInForm() {
+export function SignInForm({
+  silentCheckUrl = null,
+}: {
+  /**
+   * IdP session endpoint for the silent "Continue as ..." check, resolved on
+   * the SERVER (`witusSilentSsoEndpoint()`), or null when ecosystem SSO is not
+   * configured. Never derived here: a URL built client-side is a default that
+   * could outlive the gate.
+   */
+  silentCheckUrl?: string | null;
+} = {}) {
   const [email, setEmail] = useState("");
   const [state, setState] = useState<State>({ kind: "idle" });
   const [pending, setPending] = useState(false);
+  const [identity, setIdentity] = useState<SsoIdentity | null>(null);
+
+  // The silent ecosystem-session check. The form above is already on screen and
+  // nothing here delays it; the WitUS button says "Sign in with WitUS" from the
+  // first paint and only ever gains a better label. If the probe fails, times
+  // out, is blocked by the browser's third-party-cookie rules, or the IdP does
+  // not answer, NOTHING changes and NOTHING is said — a failed silent check has
+  // to be completely invisible, and on Safari/Firefox it is the common case.
+  useEffect(() => {
+    if (!WITUS_SSO_ENABLED) return;
+    const endpoint = silentCheckUrl;
+    const decision = silentSsoDecision({
+      endpoint,
+      search: window.location.search,
+      attempted: readAttempted(),
+    });
+    // `!endpoint` is already implied by decision.attempt; repeated so the
+    // narrowing is the compiler's and not a cast that outlives the invariant.
+    if (!decision.attempt || !endpoint) return;
+
+    // Abort rather than hang. A probe still in flight when the operator has
+    // moved on is a leak of attention, not just of a socket.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), SILENT_SSO_TIMEOUT_MS);
+    let live = true;
+
+    // `credentials: "include"` is the whole mechanism: the answer depends on
+    // the IdP's OWN cookie, which is third-party from here.
+    fetch(endpoint, {
+      credentials: "include",
+      mode: "cors",
+      cache: "no-store",
+      headers: { accept: "application/json" },
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload) => {
+        if (!live) return;
+        // NEVER a credential. This name is display copy for a button whose
+        // click runs the real OIDC code flow, and the ADMIN_EMAIL gate in
+        // lib/auth.ts still decides who actually gets in.
+        const found = parseSilentSsoIdentity(payload);
+        if (found) setIdentity(found);
+      })
+      .catch(() => {
+        // Invisible on purpose: network error, CORS refusal, abort, non-JSON.
+      })
+      .finally(() => clearTimeout(timer));
+
+    return () => {
+      live = false;
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [silentCheckUrl]);
+
+  const onWitusSignIn = useCallback(() => {
+    setPending(true);
+    // THE LOOP GUARD, written BEFORE the redirect and never after the return. A
+    // marker written on return does not exist when the return is the thing that
+    // failed — which is exactly the loop: probe says "Continue as X" -> click ->
+    // the IdP cannot finish -> back to /signin -> probe -> forever. With it, one
+    // attempt per tab; the next render offers the plain button and the email
+    // form, which always work.
+    markAttempted();
+    void signIn("witus", { callbackUrl: "/triage" });
+  }, []);
 
   async function onSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
@@ -193,12 +279,54 @@ export function SignInForm() {
             variant="secondary"
             disabled={pending}
             className="w-full"
-            onClick={() => signIn("witus", { callbackUrl: "/triage" })}
+            onClick={onWitusSignIn}
           >
-            Sign in with WitUS
+            {continueAsLabel(identity)}
           </Button>
+          {/* Always in the DOM so the label change is announced when it
+              happens, and silent (and invisible) when the probe found nothing. */}
+          <p
+            role="status"
+            aria-live="polite"
+            className={identity ? "text-center text-xs text-slate-500" : "sr-only"}
+          >
+            {identity ? "Not you? Use the email form above." : ""}
+          </p>
         </>
       )}
     </form>
   );
+}
+
+/**
+ * sessionStorage throws outright in some privacy modes, so both halves are
+ * wrapped. A browser that cannot remember the attempt still gets the other half
+ * of the guard: the `?sso=tried` marker written onto the URL below, which
+ * survives a back-navigation to this page even with no usable storage.
+ */
+function readAttempted(): boolean {
+  try {
+    return window.sessionStorage.getItem(SSO_ATTEMPT_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markAttempted(): void {
+  try {
+    window.sessionStorage.setItem(SSO_ATTEMPT_STORAGE_KEY, "1");
+  } catch {
+    // No storage, no marker — the URL half below still applies.
+  }
+  try {
+    // replaceState, not push: this must not add a history entry, it only has to
+    // make the entry we are about to leave carry the marker, so coming back to
+    // it (back button, or an IdP bounce) lands on /signin?sso=tried.
+    const marked = withAttemptMarker(
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    );
+    window.history.replaceState(window.history.state, "", marked);
+  } catch {
+    // History API refused. The sessionStorage half above still applies.
+  }
 }

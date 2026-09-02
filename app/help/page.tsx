@@ -182,6 +182,20 @@ export default function HelpPage() {
             you&apos;re not the operator yet, you&apos;ll be invited to join the
             waitlist instead. There&apos;s nothing to install.
           </p>
+          <p className={body}>
+            If your WitUS account is available, there&apos;s also a{" "}
+            <strong>Sign in with WitUS</strong> button. When you&apos;re already
+            signed in to another WitUS app in the same browser, that button may
+            read <strong>Continue as your name</strong> instead — one tap and
+            you&apos;re in. If it doesn&apos;t (some browsers block the check on
+            purpose), nothing is wrong: the ordinary button and the email form
+            both still work.
+          </p>
+          <p className={body}>
+            <strong>Signing out signs you out of every WitUS app</strong> in that
+            browser, not just this one. The menu item says &ldquo;Sign out of
+            WitUS&rdquo; when that&apos;s what it will do.
+          </p>
         </section>
 
         <section id="queue" aria-labelledby="queue-h">
