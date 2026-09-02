@@ -28,6 +28,21 @@ The agent only ever *proposes*. You are the gate.
 
 There's nothing to install. It works on your phone.
 
+### Sign in with WitUS
+
+If ecosystem SSO is configured for this deployment, the sign-in page also offers
+**Sign in with WitUS** — the same account you use across the WitUS products. Two things
+to know:
+
+- **"Continue as ..."** — when you're already signed in to another WitUS app in the same
+  browser, the button may read `Continue as <your name>` instead. It's a shortcut, not a
+  different door: clicking it runs the same sign-in, and the operator gate still applies.
+  Some browsers (Safari, Firefox) block the check that produces that label. When they do,
+  the button just says "Sign in with WitUS" and works exactly as before — nothing is broken.
+- **Signing out is global.** Sign out here and you're signed out of every WitUS app in
+  that browser. The menu item reads **Sign out of WitUS** when that's what it will do, and
+  plain **Sign out** when it will only end this app's session.
+
 ## Where to go next
 
 - Land on **[The queue](01-the-queue.md)**: your to-do list of messages waiting on you.

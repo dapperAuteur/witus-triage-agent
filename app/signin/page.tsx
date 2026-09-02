@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { witusSilentSsoEndpoint } from "@/lib/env";
 import { getOperatorEmail } from "@/lib/session";
 import { SignInForm } from "./sign-in-form";
 
@@ -34,7 +35,10 @@ export default async function SignInPage() {
         email; we&apos;ll either send a one-time sign-in link, or invite you to
         the waitlist for when this opens up.
       </p>
-      <SignInForm />
+      {/* The probe URL is resolved on the SERVER and is null unless this app is
+          a configured ecosystem OIDC client, so an unconfigured deployment
+          never hands the browser a URL it could ask. */}
+      <SignInForm silentCheckUrl={witusSilentSsoEndpoint()} />
     </main>
   );
 }

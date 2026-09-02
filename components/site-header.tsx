@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { witusEndSessionEndpoint } from "@/lib/env";
 import { getOperatorEmail } from "@/lib/session";
 import { HeaderNav } from "./header-nav";
 
@@ -11,6 +12,11 @@ import { HeaderNav } from "./header-nav";
  */
 export async function SiteHeader() {
   const authenticated = Boolean(await getOperatorEmail());
+  // Global sign-out: resolved on the SERVER (it carries client_id) and null
+  // unless this app is a configured ecosystem OIDC client, in which case
+  // sign-out stays purely local. Only computed for a signed-in operator — a
+  // signed-out visitor has no sign-out button to hand it to.
+  const endSessionBase = authenticated ? witusEndSessionEndpoint() : null;
 
   return (
     <header className="relative border-b border-slate-200 dark:border-slate-800">
@@ -31,7 +37,7 @@ export async function SiteHeader() {
             WitUS <span className="text-violet-600 dark:text-violet-400">Triage</span>
           </span>
         </Link>
-        <HeaderNav authenticated={authenticated} />
+        <HeaderNav authenticated={authenticated} endSessionBase={endSessionBase} />
       </div>
     </header>
   );

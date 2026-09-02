@@ -163,8 +163,27 @@ the **operator guide**, written in plain language with no setup steps:
   FAQ.
 
 The menu and ecosystem footer appear on every page; the menu is auth-aware (a minimal
-header signed out, the full dashboard nav once you sign in) and collapses to a hamburger on
-small screens.
+header signed out, the full dashboard nav plus **Sign out** once you sign in) and collapses
+to a hamburger on small screens.
+
+### Ecosystem SSO ("Sign in with WitUS")
+
+Entirely optional, and completely dark unless `WITUS_OIDC_CLIENT_ID` is set (plus
+`NEXT_PUBLIC_WITUS_SSO` for the client-rendered button). When it is configured:
+
+- **"Continue as ..."** — the sign-in page renders immediately as it always did, and asks
+  the WitUS IdP in parallel whether this browser already has an ecosystem session. If it
+  answers, the WitUS button's label becomes `Continue as <name>`. A blocked, failed, or
+  timed-out check is **completely invisible**: no error, no spinner, no layout shift. That
+  is the common case on Safari and Firefox, which partition the third-party cookie the
+  check depends on. The name is display copy only — it never authenticates anyone, and the
+  `ADMIN_EMAIL` gate in `lib/auth.ts` still decides who gets in.
+- **Global sign-out** — signing out ends the shared WitUS session too, so you are signed
+  out of every WitUS app in that browser. The local NextAuth session is destroyed *first*,
+  so an unreachable IdP can never leave you signed in here. The button says "Sign out of
+  WitUS" only when the global step will actually run.
+
+See `lib/silent-sso.ts` for the full design and its reasoning.
 
 ---
 
@@ -177,7 +196,7 @@ small screens.
 | Agent | `@langchain/langgraph` 1.x + `@langchain/langgraph-checkpoint-postgres` |
 | LLM | `@langchain/google-genai` (Gemini 2.5 Flash, testing) · `@langchain/anthropic` (Claude Sonnet 4.6, production) |
 | Database | Postgres / Neon, via Drizzle ORM on `node-postgres` |
-| Auth | NextAuth v4 (magic-link, single-operator) · deny + waitlist for non-operators |
+| Auth | NextAuth v4 (magic-link, single-operator) · optional "Sign in with WitUS" ecosystem OIDC · deny + waitlist for non-operators |
 | Observability | LangSmith (optional, fail-soft) · Honeycomb via OpenTelemetry / `@vercel/otel` (optional, inert without a key) |
 | Error monitoring | Better Stack via the `@sentry/nextjs` SDK (optional, inert without a DSN) · Better Stack run heartbeat (optional, inert without a URL) |
 | UI | Tailwind v4, hand-rolled components in the WitUS Inbox identity |
