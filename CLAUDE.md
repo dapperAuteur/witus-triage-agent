@@ -66,7 +66,7 @@ hamburger on mobile. User-facing help lives at `/help` (`app/help/page.tsx`), mi
 
 ---
 
-<!-- BEGIN:witus-shared-rules v1 -->
+<!-- BEGIN:witus-shared-rules v7 -->
 <!-- MANAGED BLOCK — do not edit by hand. Source: gemini/witus/docs/shared-rules.md.
      Update the source, then run `node scripts/sync-claude-rules.mjs` in the witus repo. -->
 
@@ -137,12 +137,53 @@ All implementation plans live in `./plans/` as `NN-description-of-plan.md` (two-
 kebab-case, next available number, don't skip). Sub-queues: `./plans/user-tasks/NN-slug.md`
 (operator tasks), `./plans/bugs/`, `./plans/future/`. (`plans/` is typically gitignored.)
 
+**Finding what BAM mentions: search gitignored files.** Most ideas, plans, decisions, and drafts BAM
+refers to live in a `plans/` dir of this repo or another ecosystem repo, and are not tracked by git.
+Default `rg`, `git grep`, `git log -S`, and editor search skip gitignored paths, so they miss every
+`plans/` dir and report a false "nothing found". Search with `rg -uu` (or `rg --no-ignore`, `grep -r`,
+`find`), excluding `node_modules`, `.next`, `.git`, worktrees, and virtualenvs: this repo first, then
+the repos in `gemini/witus/docs/ecosystem-repos.json`. A miss from a git-aware search proves nothing;
+if the gitignore-aware search also misses, say what you searched and ask BAM where it lives.
+Untracked also means unrecoverable: git can't restore an overwritten plan, so read before replacing.
+Full rule: `gemini/witus/CLAUDE.md` §"Plans convention".
+
+## New app ideas — vet before building
+
+Before writing code, creating a repo, or onboarding any new product idea, score it with the WitUS
+app-idea rubric (`gemini/witus/docs/app-idea-vetting-rubric.md`): search gitignored `plans/` for prior
+work, declare the goal with BAM (business / portfolio / community), write the sourced analysis at
+`gemini/witus/plans/NN-<slug>-analysis.md`, apply the gates and weighted scores, and file a user task
+for any validation BAM does outside the editor. Append lessons and outcomes to the rubric's logs;
+gate, weight, and threshold changes need BAM's approval. Full rule: `gemini/witus/CLAUDE.md`
+§"New-product vetting rule".
+
 ## Citation rule
 
 Anything publishable, teachable, or partner-facing (curriculum, teaching-oriented help articles,
 white papers, grant/sponsor/partner writing) uses APA 7 in-line citations with a `## References`
 section. Code docs, internal notes, and `plans/user-tasks/*` are out of scope. Full rule:
 `gemini/witus/CLAUDE.md` §"Citation rule".
+
+## Spelling rule — American English, always
+
+Everything written in this ecosystem uses **American English spelling**: product copy, course and lesson
+text, quiz items, docs, plans, commit messages, and agent output ("fiber" not "fibre", "color", "gray",
+"center", "catalog", "organize", "program", "license" as the noun). Never change spelling inside a
+quotation or the title of a cited work: a source is quoted as printed. When converting existing text,
+skip quotations, blockquotes, bibliography entries and code, and prove the quoted passages are unchanged.
+BAM's decision of 2026-10-08.
+
+## Blog ledger rule — every blog post goes in the ledger the session it is written
+
+BAM's blog (brandanthonymcdonald.com/blog, repo `claude/bam-landing-page`) has one ledger of every
+post, live and waiting, numbered in publishing order: `gemini/witus/plans/playbook/*-blog-ledger.md`
+(gitignored; synced to `witus.online/admin/library`). Read it before writing a post, so a topic is
+not written twice. When a session in **any** repo drafts a blog post, add it to the ledger's Part 2
+in the same session (slug, title, app, branch, publish task, gate, check result), placed after any
+post it links to; then rename the file to today's date, update its row in `00-library-index.md`, and
+re-render its PDF (`npm run library:pdf -- <file>` in witus). "Published" means listed in
+`https://www.brandanthonymcdonald.com/feed.json`, not merged. Publishing order is BAM's call. Full
+rule: `gemini/witus/CLAUDE.md` §"Blog ledger rule".
 
 ## Authoritative-values rule — never assert guessed external values
 
@@ -153,6 +194,20 @@ fallback in both UI copy and a code comment. Verify by behavior (does the flow w
 exact-match against a guess. When unsure, flag or ask — never assert. Full rule:
 `gemini/witus/CLAUDE.md` §"Authoritative-values rule".
 
+## Preview-branch cleanup rule — no preview deployment may leave a paid resource behind
+
+Every repo deployed on Vercel with a Neon database through the Vercel-managed integration gets a Neon branch named `preview/<git-branch>` per preview deployment. Neon deletes that branch only when the Vercel **deployment** is deleted, and Vercel keeps preview deployments for six months by default (a project with fewer than about 20 preview deployments may never delete any). Stale branches count toward the plan's branch limit and are billed as extra usage. BAM was charged over $100 in each of two months this way (2026-10-15).
+
+**Required in every Neon repo:**
+1. The workflow `.github/workflows/neon-preview-cleanup.yml` (canonical copy in `gemini/witus/.github/templates/`, synced by `node scripts/sync-preview-cleanup-workflow.mjs --write`): on `pull_request` `closed`, run `neondatabase/delete-branch-action@v3` against `preview/${{ github.head_ref }}` with `vars.NEON_PROJECT_ID` and `secrets.NEON_API_KEY`. Do not edit the synced copy; edit the template and re-sync.
+2. The GitHub repository variable `NEON_PROJECT_ID` and secret `NEON_API_KEY` set (operator task; the workflow fails loudly without them). **The key is project-scoped and unique to that project** (Neon Console → Organization settings → API keys → Create new → Project-scoped; or `neon api-keys create --name <name> --project-id <id>`), so a leak reaches one database. A project-scoped key still has Editor access to every branch in its project: the `preview/` name filter in code is the real guard, and the key never reaches client-side code. The hub (witus.online) holds the map of all project keys as `NEON_PROJECT_KEYS` for its `/admin/cost-cleanup` page; `scripts/neon-key-plan.ts` prints or mints them.
+3. The Vercel project's **Deployment Retention Policy → Pre-Production Deployments** set to the shortest duration (dashboard, per project).
+4. A branch created by hand for a preview or an experiment carries `expires_at` (Neon branch expiration, 30 days maximum); never create one without it.
+
+**Supabase repos** (CentenarianOS, Work.WitUS, Tour Manager OS, one shared project): no persistent branches; preview branches only through the GitHub integration, which deletes them when the PR closes. **MongoDB Atlas repos** (FlashLearnAI, bam-landing-page): the integration creates no per-preview resources; cost is the cluster tier, nothing to clean.
+
+**Claude's part:** when a session adds a Neon database to a repo, it adds the workflow in the same change and files the variable/secret step as an operator task. When a session sees preview branches older than the PR that made them (`npx neonctl branches list --project-id <id>`), it lists them for BAM instead of assuming the integration cleaned up. Source for the Neon behavior: https://neon.com/docs/guides/vercel-branch-cleanup (read 2026-10-15).
+
 ## Coding conventions
 
 UI/UX/DX conventions (a11y, component patterns, TypeScript, microcopy, git-commit vocabulary, the
@@ -160,4 +215,4 @@ default Neon+Drizzle+pnpm+Vitest stack) are consolidated in `gemini/witus/docs/s
 Read it before writing UI or API code. Two repos are grandfathered on Supabase+Jest and documented
 there as exceptions.
 
-<!-- END:witus-shared-rules v1 -->
+<!-- END:witus-shared-rules v7 -->
