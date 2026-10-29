@@ -1,6 +1,7 @@
 /**
- * Ecosystem SSO helpers: the silent "Continue as <name>" check, and the URL that
- * ends the SHARED WitUS session on sign-out.
+ * Ecosystem SSO helpers: the silent "Continue as <name>" check, and the two
+ * sign-out flows ("Sign out" for this app only, and "Sign out of WitUS
+ * everywhere", which also ends the SHARED WitUS session).
  *
  * WHY A CROSS-ORIGIN PROBE. Signing in here sends the operator to
  * accounts.witus.online even when another tab already has them signed in to a
@@ -152,11 +153,11 @@ export function silentSsoEndpointFromDiscovery(
  * `end_session_endpoint` the discovery document advertises. Unlike the probe it
  * DOES live under the better-auth basePath.
  *
- * BAM chose GLOBAL sign-out on 2026-08-30: signing out of one WitUS app signs
- * you out of all of them. Ending only this app's NextAuth session leaves the
- * IdP session alive, which — once "Continue as ..." is live — means signing out
- * and coming back offers to sign you straight back in. That reads as a broken
- * logout.
+ * Used ONLY by the separate "Sign out of WitUS everywhere" control (BAM,
+ * 2026-10-29, witus task 128 option (b)). Plain "Sign out" ends this app's
+ * session alone and never comes here; the 2026-08-30 behaviour, where the one
+ * button always ended the WitUS session too, surprised BAM because every other
+ * app kept its own session.
  */
 export function endSessionEndpointFromDiscovery(
   discoveryUrl: string | null | undefined,
@@ -216,4 +217,68 @@ export function continueAsLabel(identity: SsoIdentity | null): string {
 export function endSessionUrl(base: string, origin: string): string {
   const back = new URL("/", origin).toString();
   return `${base}&post_logout_redirect_uri=${encodeURIComponent(back)}`;
+}
+
+// ── Sign-out (BAM, 2026-10-29, witus task 128 option (b)) ───────────────────
+
+/**
+ * Where plain "Sign out" lands: a PUBLIC page rather than a refresh in place,
+ * so signing out from a gated route cannot re-render it logged-out.
+ */
+export const LOCAL_SIGN_OUT_DESTINATION = "/";
+
+/** Exact accessible names and help text. Pinned by the sign-out tests. */
+export const SIGN_OUT_LABEL = "Sign out";
+export const SIGN_OUT_EVERYWHERE_LABEL = "Sign out of WitUS everywhere";
+export const SIGN_OUT_EVERYWHERE_HELP =
+  "Also signs you out of WitUS. Other WitUS apps you are signed in to stay signed in until you sign out of them.";
+export const SIGNING_OUT_LABEL = "Signing out…";
+
+/** Side effects the sign-out flows need, injected so tests can observe order. */
+export type SignOutEffects = {
+  /** Ends this app's NextAuth session WITHOUT navigating. */
+  endLocalSession: () => Promise<unknown>;
+  /** A full navigation (`window.location.assign` in the browser). */
+  navigate: (url: string) => void;
+};
+
+async function endLocalSessionQuietly(effects: SignOutEffects): Promise<void> {
+  try {
+    // Awaited: the whole safety property is that this has finished before
+    // anything leaves our origin.
+    await effects.endLocalSession();
+  } catch {
+    // Best effort. A failure here must never trap someone in a session they
+    // asked to leave, so we still fall through to the navigation.
+  }
+}
+
+/**
+ * Plain "Sign out": ends ONLY this app's session, then goes to `/`. It NEVER
+ * navigates to the IdP, even when an end-session URL is configured; the WitUS
+ * session and every other app's session stay alive.
+ */
+export async function signOutHere(effects: SignOutEffects): Promise<void> {
+  await endLocalSessionQuietly(effects);
+  effects.navigate(LOCAL_SIGN_OUT_DESTINATION);
+}
+
+/**
+ * "Sign out of WitUS everywhere": ends this app's session, then hands the
+ * browser to the IdP's endsession endpoint, which ends the WitUS session and
+ * returns to `<origin>/`.
+ *
+ * ORDER IS THE SAFETY PROPERTY. The local session is destroyed FIRST. If the
+ * IdP is unreachable, refuses the logout, or the redirect never completes, the
+ * operator is still signed out HERE. Handing off first would turn any IdP
+ * failure into "I clicked sign out and I'm still signed in", which is the one
+ * outcome a sign-out button must never produce.
+ */
+export async function signOutEverywhere(
+  endSessionBase: string,
+  origin: string,
+  effects: SignOutEffects,
+): Promise<void> {
+  await endLocalSessionQuietly(effects);
+  effects.navigate(endSessionUrl(endSessionBase, origin));
 }

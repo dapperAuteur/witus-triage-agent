@@ -39,9 +39,9 @@ to know:
   different door: clicking it runs the same sign-in, and the operator gate still applies.
   Some browsers (Safari, Firefox) block the check that produces that label. When they do,
   the button just says "Sign in with WitUS" and works exactly as before — nothing is broken.
-- **Signing out is global.** Sign out here and you're signed out of every WitUS app in
-  that browser. The menu item reads **Sign out of WitUS** when that's what it will do, and
-  plain **Sign out** when it will only end this app's session.
+- **Sign out** signs you out of this app only. Your WitUS account and any other WitUS apps
+  stay signed in. To also sign out of WitUS, use **Sign out of WitUS everywhere** in the
+  menu. Other WitUS apps you are signed in to stay signed in until you sign out of them.
 
 ## Where to go next
 

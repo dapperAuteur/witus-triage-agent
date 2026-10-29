@@ -12,10 +12,11 @@ import { HeaderNav } from "./header-nav";
  */
 export async function SiteHeader() {
   const authenticated = Boolean(await getOperatorEmail());
-  // Global sign-out: resolved on the SERVER (it carries client_id) and null
-  // unless this app is a configured ecosystem OIDC client, in which case
-  // sign-out stays purely local. Only computed for a signed-in operator — a
-  // signed-out visitor has no sign-out button to hand it to.
+  // "Sign out of WitUS everywhere" (BAM, 2026-10-29, witus task 128 option
+  // (b)): resolved on the SERVER (it carries client_id) and null unless this
+  // app is a configured ecosystem OIDC client, in which case that control does
+  // not render. Plain "Sign out" never uses it. Only computed for a signed-in
+  // operator — a signed-out visitor has no sign-out controls.
   const endSessionBase = authenticated ? witusEndSessionEndpoint() : null;
 
   return (

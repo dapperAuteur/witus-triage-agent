@@ -192,9 +192,11 @@ export default function HelpPage() {
             both still work.
           </p>
           <p className={body}>
-            <strong>Signing out signs you out of every WitUS app</strong> in that
-            browser, not just this one. The menu item says &ldquo;Sign out of
-            WitUS&rdquo; when that&apos;s what it will do.
+            <strong>Sign out</strong> signs you out of this app only. Your
+            WitUS account and any other WitUS apps stay signed in. To also sign
+            out of WitUS, use <strong>Sign out of WitUS everywhere</strong> in
+            the menu. Other WitUS apps you are signed in to stay signed in until
+            you sign out of them.
           </p>
         </section>
 

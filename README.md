@@ -178,10 +178,13 @@ Entirely optional, and completely dark unless `WITUS_OIDC_CLIENT_ID` is set (plu
   is the common case on Safari and Firefox, which partition the third-party cookie the
   check depends on. The name is display copy only — it never authenticates anyone, and the
   `ADMIN_EMAIL` gate in `lib/auth.ts` still decides who gets in.
-- **Global sign-out** — signing out ends the shared WitUS session too, so you are signed
-  out of every WitUS app in that browser. The local NextAuth session is destroyed *first*,
-  so an unreachable IdP can never leave you signed in here. The button says "Sign out of
-  WitUS" only when the global step will actually run.
+- **Sign out, or sign out of WitUS everywhere** (BAM, 2026-10-29, witus task 128 option
+  (b)) — **Sign out** ends only this app's session and goes to `/`; the WitUS session and
+  every other WitUS app stay signed in. A second, secondary menu item, **Sign out of WitUS
+  everywhere**, also ends the shared WitUS session; its help text says other WitUS apps
+  stay signed in until you sign out of them. It destroys the local NextAuth session
+  *first*, so an unreachable IdP can never leave you signed in here, and it only appears
+  when this app is a configured ecosystem OIDC client.
 
 See `lib/silent-sso.ts` for the full design and its reasoning.
 

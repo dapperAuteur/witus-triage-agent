@@ -2,6 +2,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  LOCAL_SIGN_OUT_DESTINATION,
+  SIGN_OUT_EVERYWHERE_HELP,
+  SIGN_OUT_EVERYWHERE_LABEL,
+  SIGN_OUT_LABEL,
   SSO_ATTEMPT_STORAGE_KEY,
   continueAsLabel,
   endSessionEndpointFromDiscovery,
@@ -9,16 +13,20 @@ import {
   hasAttemptMarker,
   parseSilentSsoIdentity,
   silentSsoDecision,
+  signOutEverywhere,
+  signOutHere,
   silentSsoEndpointFromDiscovery,
   withAttemptMarker,
+  type SignOutEffects,
 } from "@/lib/silent-sso";
 
 /**
- * Ecosystem SSO: the silent "Continue as <name>" check and global sign-out.
+ * Ecosystem SSO: the silent "Continue as <name>" check and the two sign-out
+ * controls ("Sign out" = this app; "Sign out of WitUS everywhere").
  *
  * Pinned in order of what each would cost if it broke:
- *   1. SIGN-OUT ORDERING. NextAuth's local sign-out must complete BEFORE the
- *      handoff to the IdP. Reverse it and any IdP failure becomes "I clicked
+ *   1. SIGN-OUT ORDERING. For "Sign out of WitUS everywhere", NextAuth's local
+ *      sign-out must complete BEFORE the handoff to the IdP. Reverse it and any IdP failure becomes "I clicked
  *      sign out and I'm still signed in".
  *   2. THE REDIRECT LOOP. probe -> "Continue as X" -> click -> IdP declines ->
  *      back to /signin -> probe. It never shows up in normal use, so it is
@@ -98,18 +106,106 @@ describe("the gate: the probe never fires without a configured client", () => {
   });
 });
 
-describe("global sign-out", () => {
-  it("destroys the local session BEFORE handing off to the IdP", () => {
+describe("sign-out: plain Sign out is local-only, everywhere is separate (task 128 (b))", () => {
+  const BASE =
+    "https://accounts.witus.online/api/idp/oauth2/endsession?client_id=triage";
+  const ORIGIN = "https://triage.agent.witus.online";
+  const code = stripComments(read("components/sign-out-button.tsx"));
+  const between = (from: string, to?: string) =>
+    code.slice(code.indexOf(from), to ? code.indexOf(to) : undefined);
+  const plain = between(
+    "export function SignOutButton",
+    "export function SignOutEverywhereButton",
+  );
+  const everywhere = between("export function SignOutEverywhereButton");
+
+  function recorder(opts: { localFails?: boolean } = {}) {
+    const calls: string[] = [];
+    const effects: SignOutEffects = {
+      endLocalSession: async () => {
+        calls.push("endLocalSession");
+        if (opts.localFails) throw new Error("network");
+      },
+      navigate: (url) => {
+        calls.push(`navigate:${url}`);
+      },
+    };
+    return { calls, effects };
+  }
+
+  it('"Sign out" ends the local session, then goes to /, never the IdP', async () => {
+    const { calls, effects } = recorder();
+    await signOutHere(effects);
+    expect(LOCAL_SIGN_OUT_DESTINATION).toBe("/");
+    expect(calls).toEqual(["endLocalSession", "navigate:/"]);
+  });
+
+  it('"Sign out" still navigates locally when ending the session throws', async () => {
+    const { calls, effects } = recorder({ localFails: true });
+    await signOutHere(effects);
+    expect(calls).toEqual(["endLocalSession", "navigate:/"]);
+  });
+
+  it('"Sign out" never receives the end-session URL, even when one is configured', () => {
+    expect(plain).not.toContain("endSessionBase");
+    expect(plain).not.toContain("signOutEverywhere");
+    expect(plain).toContain("signOutHere(browserEffects)");
+    const nav = stripComments(read("components/header-nav.tsx"));
+    // Desktop and mobile: Sign out gets no URL; the everywhere control does.
+    expect(nav).toContain("<SignOutButton className={navLink} />");
+    expect(nav).toContain("<SignOutButton className={`w-full text-left ${navLink}`} />");
+    expect(nav.split("<SignOutEverywhereButton").length - 1).toBe(2);
+    expect(nav.split("endSessionBase={endSessionBase}").length - 1).toBe(2);
+  });
+
+  it('"Sign out" is always named exactly "Sign out"', () => {
+    expect(SIGN_OUT_LABEL).toBe("Sign out");
+    expect(plain).toContain("{pending ? SIGNING_OUT_LABEL : SIGN_OUT_LABEL}");
+    expect(code).not.toContain('"Sign out of WitUS"');
+  });
+
+  it("everywhere: exact accessible name and help text", () => {
+    expect(SIGN_OUT_EVERYWHERE_LABEL).toBe("Sign out of WitUS everywhere");
+    expect(SIGN_OUT_EVERYWHERE_HELP).toBe(
+      "Also signs you out of WitUS. Other WitUS apps you are signed in to stay signed in until you sign out of them.",
+    );
+  });
+
+  it("everywhere: renders nothing without an end-session URL", () => {
+    expect(everywhere).toContain("if (!endSessionBase) return null;");
+    expect(everywhere.indexOf("return null")).toBeLessThan(everywhere.indexOf("<button"));
+    // And the nav does not even mount it when the server resolved null.
+    const nav = stripComments(read("components/header-nav.tsx"));
+    expect(nav.split("{authenticated && endSessionBase && (").length - 1).toBe(2);
+  });
+
+  it("everywhere: the help text is visible and referenced by aria-describedby", () => {
+    expect(everywhere).toContain("const helpId = useId();");
+    expect(everywhere).toContain("aria-describedby={helpId}");
+    expect(everywhere).toMatch(/<p id=\{helpId\}[^>]*>\s*\{SIGN_OUT_EVERYWHERE_HELP\}/);
+  });
+
+  it("everywhere: destroys the local session BEFORE handing off to the IdP", async () => {
     // THE POINT OF THIS TEST. Reverse these two and an unreachable IdP leaves
     // the operator signed in on a machine they walked away from.
-    const code = stripComments(read("components/sign-out-button.tsx"));
-    const local = code.indexOf("await signOut({ redirect: false })");
-    const handoff = code.indexOf("window.location.assign(endSessionUrl(");
-    expect(local).toBeGreaterThan(-1);
-    expect(handoff).toBeGreaterThan(-1);
-    expect(local).toBeLessThan(handoff);
-    // Awaited, not fire-and-forget: an un-awaited signOut races the navigation.
-    expect(code).toContain("await signOut({ redirect: false });");
+    const { calls, effects } = recorder();
+    await signOutEverywhere(BASE, ORIGIN, effects);
+    expect(calls).toEqual([
+      "endLocalSession",
+      `navigate:${BASE}&post_logout_redirect_uri=${encodeURIComponent(`${ORIGIN}/`)}`,
+    ]);
+  });
+
+  it("everywhere: still hands off to the IdP when ending the local session throws", async () => {
+    const { calls, effects } = recorder({ localFails: true });
+    await signOutEverywhere(BASE, ORIGIN, effects);
+    expect(calls[0]).toBe("endLocalSession");
+    expect(calls[1]).toContain("/oauth2/endsession?client_id=triage&post_logout_redirect_uri=");
+  });
+
+  it("uses signOut({ redirect: false }) and a full navigation", () => {
+    expect(code).toContain("signOut({ redirect: false })");
+    expect(code).toContain("window.location.assign(url)");
     // A full navigation, not a router push — it leaves this origin.
     expect(code).not.toContain("router.push");
   });
@@ -118,19 +214,15 @@ describe("global sign-out", () => {
     // better-auth EXACT-matches this against the client's registered
     // redirectUrls, and gemini/witus registers `origin + "/"` for every app
     // (postLogoutRedirectUriFor). Drop the slash and the IdP returns a 400.
-    const base =
-      "https://accounts.witus.online/api/idp/oauth2/endsession?client_id=triage";
-    expect(endSessionUrl(base, "https://triage.agent.witus.online")).toBe(
-      `${base}&post_logout_redirect_uri=${encodeURIComponent("https://triage.agent.witus.online/")}`,
+    expect(endSessionUrl(BASE, ORIGIN)).toBe(
+      `${BASE}&post_logout_redirect_uri=${encodeURIComponent("https://triage.agent.witus.online/")}`,
     );
     // A trailing slash on the origin must not produce a doubled one.
-    expect(endSessionUrl(base, "https://triage.agent.witus.online/")).toContain(
+    expect(endSessionUrl(BASE, `${ORIGIN}/`)).toContain(
       encodeURIComponent("https://triage.agent.witus.online/"),
     );
     // `&`, not `?`: the base already carries client_id.
-    expect(endSessionUrl(base, "https://triage.agent.witus.online")).not.toContain(
-      "?post_logout_redirect_uri",
-    );
+    expect(endSessionUrl(BASE, ORIGIN)).not.toContain("?post_logout_redirect_uri");
   });
 
   it("carries client_id, which better-auth requires", () => {
@@ -142,13 +234,6 @@ describe("global sign-out", () => {
     expect(logout).toContain("?client_id=${encodeURIComponent(clientId)}");
   });
 
-  it("says what it will actually do", () => {
-    // "Sign out of WitUS" promises something global, so it only appears when
-    // the global step will really run.
-    const code = read("components/sign-out-button.tsx");
-    expect(code).toContain('endSessionBase ? "Sign out of WitUS" : "Sign out"');
-  });
-
   it("derives the RP-initiated logout endpoint under the IdP's basePath", () => {
     expect(endSessionEndpointFromDiscovery(DISCOVERY)).toBe(
       "https://accounts.witus.online/api/idp/oauth2/endsession",
@@ -157,6 +242,7 @@ describe("global sign-out", () => {
     expect(endSessionEndpointFromDiscovery("not a url")).toBeNull();
   });
 });
+
 
 describe("the redirect loop: an IdP that will not sign the operator in", () => {
   it("attempts once, then never again in that tab", () => {

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { SignOutButton } from "./sign-out-button";
+import { SignOutButton, SignOutEverywhereButton } from "./sign-out-button";
 
 /**
  * Primary nav links. The set is auth-aware: a signed-out visitor sees only the
@@ -29,14 +29,24 @@ const navLink =
   "focus-visible:outline-violet-500 dark:text-slate-400 dark:hover:bg-slate-800 " +
   "dark:hover:text-slate-100";
 
+/** Secondary styling for "Sign out of WitUS everywhere": outlined, smaller text. */
+const everywhereButton =
+  "inline-flex min-h-11 items-center rounded border border-slate-300 px-3 text-xs " +
+  "text-slate-700 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 " +
+  "focus-visible:outline-offset-2 focus-visible:outline-violet-500 dark:border-slate-700 " +
+  "dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100";
+
+const everywhereHelp = "text-xs text-slate-600 dark:text-slate-400";
+
 export function HeaderNav({
   authenticated,
   endSessionBase = null,
 }: {
   authenticated: boolean;
   /**
-   * IdP end-session URL for GLOBAL sign-out, resolved server-side in
-   * `SiteHeader`. Null keeps sign-out local to this app.
+   * IdP end-session URL for "Sign out of WitUS everywhere", resolved
+   * server-side in `SiteHeader`. Null hides that control. Plain "Sign out" is
+   * always local to this app (BAM, 2026-10-29, witus task 128 option (b)).
    */
   endSessionBase?: string | null;
 }) {
@@ -56,7 +66,16 @@ export function HeaderNav({
         ))}
         {authenticated && (
           <li>
-            <SignOutButton endSessionBase={endSessionBase} className={navLink} />
+            <SignOutButton className={navLink} />
+          </li>
+        )}
+        {authenticated && endSessionBase && (
+          <li className="flex max-w-64 flex-col items-start gap-1 py-1">
+            <SignOutEverywhereButton
+              endSessionBase={endSessionBase}
+              className={everywhereButton}
+              helpClassName={everywhereHelp}
+            />
           </li>
         )}
       </ul>
@@ -107,9 +126,15 @@ export function HeaderNav({
           ))}
           {authenticated && (
             <li>
-              <SignOutButton
+              <SignOutButton className={`w-full text-left ${navLink}`} />
+            </li>
+          )}
+          {authenticated && endSessionBase && (
+            <li className="flex flex-col items-start gap-1 py-2">
+              <SignOutEverywhereButton
                 endSessionBase={endSessionBase}
-                className={`w-full text-left ${navLink}`}
+                className={everywhereButton}
+                helpClassName={`px-1 ${everywhereHelp}`}
               />
             </li>
           )}
